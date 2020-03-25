@@ -24,10 +24,12 @@ public class App extends AbstractHttpServer {
     range.strip(PLANTUML_SVG.length, 0);
     final Bytes bytes = buf.bytes();
     int idx = range.start + 1;
-    while (bytes.get(idx) != (byte) '/') {
+    while (bytes.get(idx) != (byte) '/' && idx < range.last()) {
       ++idx;
     }
-    range.set(idx + 1, range.length - (idx - range.start));
+    if (idx < range.last()) {
+      range.set(idx + 1, range.length - (idx - range.start));
+    }
     final String zipped = buf.get(range);
 
     return UmlConverter.decode(zipped);
@@ -67,7 +69,7 @@ public class App extends AbstractHttpServer {
     } catch (final IOException ex) {
       ex.printStackTrace();
       startResponse(ctx, req.isKeepAlive.value);
-      final String body = "<html>Error: could not parse uml</html>";
+      final String body = "Error: could not parse uml";
       writeBody(ctx, body.getBytes(), 0, body.length(), MediaType.TEXT_PLAIN);
       return HttpStatus.ERROR;
     }
