@@ -1,7 +1,7 @@
 # pumlsrv
 Small and efficient PlantUML HTTP Server
 
-This is a small (fast) replacement of [https://github.com/plantuml/plantuml-server](Plant-UML Server) which can run without installing any other http servers.
+This is a small (fast) replacement of [Plant-UML Server](https://github.com/plantuml/plantuml-server) which can run without installing any other http servers.
 
 ## Abstract
 This http server runs on localhost on default port 8080. It can simply be started with
