@@ -1,6 +1,7 @@
 package com.github.michael72.pumlsrv;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 
@@ -10,7 +11,7 @@ class UmlConverterTest {
 
   static String HELLO_BOB_ENC = "SyfFKj2rKt3CoKnELR1Io4ZDoSa70000";
   static String HELLO_BOB = "@startuml\n" + "Bob -> Alice : hello\n" + "@enduml";
-
+  
   @Test
   void testEncodeUml() {
     try {
