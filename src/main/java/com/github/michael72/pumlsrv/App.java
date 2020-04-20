@@ -29,7 +29,7 @@ public class App extends AbstractHttpServer {
     return UmlConverter.decode(content);
   }
 
-  private static byte[] toImage(ParseUrl parseUrl) throws IOException {
+  private static ConverterResult toImage(ParseUrl parseUrl) throws IOException {
     final String uml = toUml(parseUrl.getContent());
     return UmlConverter.toImage(uml, parseUrl.getImageType());
   }
@@ -44,7 +44,8 @@ public class App extends AbstractHttpServer {
     try {
       if (req.isGet.value && BytesUtil.startsWith(buf.bytes(), req.path, PLANTUML, true)) {
         final ParseUrl parseUrl = new ParseUrl(buf, req.path, PLANTUML.length);
-        return ok(ctx, req.isKeepAlive.value, toImage(parseUrl), mediaTypes.get(parseUrl.getImageType()));
+        final ConverterResult conv_result = toImage(parseUrl);
+        return ok(ctx, req.isKeepAlive.value, conv_result.bytes, mediaTypes.get(conv_result.image_type));
       } else {
         return parsePost(ctx, buf, req);
       }
