@@ -1,6 +1,8 @@
 package com.github.michael72.pumlsrv;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -59,16 +61,54 @@ public class App extends AbstractHttpServer {
 
   }
 
+  static void startOnPort(final int port, int offset) {
+    try {
+      if (offset < 10) {
+        System.out.println("pumlserver: listening on http://localhost:" + (port + offset) + "/plantuml");
+        new App().listen(port + offset);
+      }
+    } catch (final RuntimeException ex) {
+      if ("Server start-up failed!".equals(ex.getMessage())) {
+        URL url;
+        try {
+          url = new URL("http://localhost:" + (port + offset) + "/plantuml/txt/SoWkIImgAStDuN9KqBLJSE9oICrB0N81");
+          final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+          con.setRequestMethod("GET");
+          try {
+            final Object content = con.getContent();
+            if (content != null) {
+              System.out.println(content.toString());
+            }
+            System.out.println("Another PlantUML server is running on port " + (port + offset) + " - exiting!");
+          }
+          catch (IOException ioe) {
+            // continue with next port
+            startOnPort(port, offset + 1);
+          }
+        } catch (Throwable T) {
+          T.printStackTrace();
+        }
+      }
+    }
+  }
+
   public static void main(final String[] args) throws Exception {
+
     int port = DEFAULT_PORT;
     if (args.length == 1) {
       port = Integer.parseInt(args[0]);
+      System.out.println("Using port set in parameter: " + port);
     } else if (args.length != 0) {
       System.err.println("Usage: pumlserver <port>");
       System.exit(-1);
-
+    } else {
+      final String portEnv = System.getenv("PUMLSRV_PORT");
+      if (portEnv != null) {
+        port = Integer.parseInt(portEnv);
+        System.out.println("Using port set in environment: " + port);
+      }
     }
-    System.out.println("pumlserver: listening on http://localhost:" + port + "/plantuml");
-    new App().listen(port);
+    
+    startOnPort(port, 0);
   }
 }
