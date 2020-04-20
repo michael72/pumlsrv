@@ -9,6 +9,8 @@ This http server runs on localhost on with the given port - default port is 8080
 java -jar pumlsrv*.jar <Port>
 ```
 
+Also the environment variable `PUMLSRV_PORT`is checked and used when no parameter is given.
+
 Editors that can connect to the official PlantUML - such as jebbs excellent PlantUML plugin running in Visual Studio Code - can simply connect via http protocol.
 
 Once the http server is running the following link - when opened on a the same PC - should show the default Alice -> Bob diagram as SVG:
