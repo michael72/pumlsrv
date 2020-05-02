@@ -5,7 +5,7 @@
 	<groupId>com.github.michael72.pumlsrv</groupId>
 	<artifactId>pumlsrv</artifactId>
 	<packaging>jar</packaging>
-	<version>1.2.0</version>
+	<version>1.3.0</version>
 	<name>pumlsrv</name>
 	<url>http://maven.apache.org</url>
 	<properties>
@@ -37,12 +37,17 @@
 		<dependency>
 			<groupId>net.sourceforge.plantuml</groupId>
 			<artifactId>plantuml</artifactId>
-			<version>1.2020.6</version>
+			<version>1.2020.8</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
 			<version>1.8</version>
+		</dependency>
+		<dependency>
+  			<groupId>info.picocli</groupId>
+  			<artifactId>picocli</artifactId>
+  			<version>4.2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -61,11 +66,28 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<annotationProcessorPaths>
+					<path>
+						<groupId>info.picocli</groupId>
+						<artifactId>picocli-codegen</artifactId>
+						<version>4.2.0</version>
+					</path>
+					</annotationProcessorPaths>
+					<compilerArgs>
+					<arg>-Aproject=${project.groupId}/${project.artifactId}</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
+			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.github.michael72.pumlsrv.App</mainClass>
+							<mainClass>com.github.michael72.pumlsrv.Main</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>

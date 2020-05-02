@@ -26,17 +26,7 @@ public class UmlConverter {
   public static String decode(final String source) throws IOException {
 
     // build the UML source from the compressed part of the URL
-    final String text = TranscoderUtil.getDefaultTranscoder().decode(source);
-
-    // encapsulate the UML syntax if necessary
-    if (!text.startsWith("@")) {
-      final StringBuilder plantUmlSource = new StringBuilder("@startuml\n").append(text);
-      if (!text.endsWith("\n")) {
-        plantUmlSource.append("\n");
-      }
-      return plantUmlSource.append("@enduml").toString();
-    }
-    return text;
+    return TranscoderUtil.getDefaultTranscoder().decode(source);
   }
 
   // supported formats are as in plantuml server:
