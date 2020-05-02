@@ -7,7 +7,7 @@ This is a small (fast) replacement of [Plant-UML Server](https://github.com/plan
 
 ## Abstract
 This http server runs on localhost on with the given port - default port is 8080. When using `h` parameter the options are shown: 
-```cmd
+```
 java -jar pumlsrv*.jar -h
 
 Usage: pumlsrv [-cDhLMnNrV] [-i=<include_file>] [PORT]
