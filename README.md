@@ -1,11 +1,18 @@
 # pumlsrv
 Small and efficient PlantUML HTTP Server
 
+# Abstract
+
 This is a small (fast) replacement of [Plant-UML Server](https://github.com/plantuml/plantuml-server) which can run without installing any other http servers.
+
+Ease of use: the main settings can be configured on the main page and will be saved and restored on next startup.
+
+Up to date: the newest plantuml*.jar is automatically downloaded. The download is saved to the current directory of pumlsrv.jar. The updates can be switched off or done manually - just copy a valid plantuml*.jar file to the same directory. 
 
 ![pumlsrv mainpage](mainpage.png "Main Page")
 
-## Abstract
+## Usage
+
 This http server runs on localhost on with the given port - default port is 8080. When using `h` parameter the options are shown: 
 ```
 java -jar pumlsrv*.jar -h
@@ -38,4 +45,4 @@ Editors that can connect to the official PlantUML - such as jebbs excellent Plan
 
 As the official Plant-UML server pumlsrv also supports output types png, svg, eps, epstext and txt.
 
-Have fun!
+Enjoy!
