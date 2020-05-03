@@ -12,10 +12,13 @@ public class MainHtml {
     this.params = params;
   }
 
+  public String localhost() {
+    return "http://localhost:" + this.params.port();
+  }
+
   public String hello() {
     final StringBuilder buf = new StringBuilder("@startuml\ntitle:");
-    buf.append("pumlsrv ").append(Resources.version).append(" running on port ")
-        .append(Integer.toString(this.params.port()));
+    buf.append("pumlsrv ").append(Resources.version).append(" running on port ").append(this.params.port());
     buf.append("\nAlice -> Bob: Hello pumlsrv!\n@enduml\n");
     return buf.toString();
   }
@@ -35,10 +38,24 @@ public class MainHtml {
     addLink(buf, name, name, bg, bc, fg);
   }
 
+  private void addToggle(final StringBuilder buf, final String label, final boolean checked, final String name) {
+    final String href = "/" + name;
+    buf.append("<td><label for=\"switch" + name + "\">" + label + "</label></td>");
+
+    buf.append("<td><label class=\"switch\" id=\"switch" + name + "\">\n" + "<input type=\"checkbox\" "
+        + (checked ? "checked" : "") + ">\n" + "<span class=\"slider round\" id=\"updateSwitch" + name + "\"></span>\n"
+        + "</label></td>")
+        .append("<script>" + "function onUpdate" + name + "() {\n" + "window.location.href='" + href + "';\n" + "}"
+            + "function onUpdate2" + name + "() {\n" + "setTimeout(onUpdate" + name + ",400);\n" + "}"
+            + "document.getElementById('updateSwitch" + name + "').onclick=onUpdate2" + name + ";\n" + "</script>");
+  }
+
   public byte[] html() throws IOException {
+    // create title
     final StringBuilder buf = new StringBuilder("<html><head>").append("<style>").append(Resources.switchCss)
         .append("html *\n" + "{\n" + "   font-family: Arial;\n" + "}\n").append("</style>").append("<title>pumlsrv ")
-        .append(Resources.version).append("<link rel=\"shortcut icon\" href=\"/favicon.ico\">")
+        .append(Resources.version).append(" configuration")
+        .append("</title><link rel=\"shortcut icon\" href=\"" + localhost() + "/favicon.ico\">")
         .append("</title></head>");
     buf.append("<body>").append(Resources.pumlsrvSvg);
 
@@ -64,29 +81,32 @@ public class MainHtml {
         }
       }
       if (params.isMonoChrome) {
-        addLink(buf, "color", "mono", "green", "red", "blue");
+        addLink(buf, "color", "mono", "blue", "red", "yellow");
       } else {
         addLink(buf, "mono", "mono", "black", "gray", "white");
       }
 
-      buf.append("</p><p>");
-      buf.append("<form class=\"form-inline\" action=\"/move_to\">\n" + " <div class=\"form-group\">\n"
-          + "  <label for=\"port\">Port:</label>\n" + "  <input type=\"text\" id=\"port\" name=\"port\" value=\""
-          + params.port() + "\">\n" + "  <input type=\"submit\" value=\"Change\">\r\n" + "</div>\n" + "</form> ");
-      buf.append("</p><p>");
-      buf.append("<label for=\"switch\">Check for updates on start: </label>");
-      buf.append("<label class=\"switch\" id=\"switch\">\n" + "<input type=\"checkbox\" "
-          + (params.checkForUpdates ? "checked" : "") + ">\n"
-          + "<span class=\"slider round\" id=\"updateSwitch\"></span>\n" + "</label>")
-          .append("<script>" + "function onUpdate() {\n" + "window.location.href='/check_updates';\n" + "}"
-              + "function onUpdate2() {\n" + "setTimeout(onUpdate,400);\n" + "}"
-              + "document.getElementById('updateSwitch').onclick=onUpdate2;\n" + "</script>");
+      // format items in table
+      buf.append("</p><table><tr>");
+      // show port entry field
+      buf.append("<form class=\"form-inline\" action=\"/move_to\">\n" + " <div class=\"form-group\"><td>\n"
+          + "<label for=\"port\">Port:</label>\n" + "<input type=\"number\" id=\"port\" name=\"port\" value=\""
+          + params.port() + "\">\n" + "</td></div><td>" + "<input type=\"submit\" value=\"Change\">\r\n" + "</td>\n"
+          + "</form>");
+      buf.append("</tr><tr>");
+      // add toggle box for updates on start
+      addToggle(buf, "Check for updates on start", params.checkForUpdates, "check_updates");
+      buf.append("</tr><tr>");
+      // add toggle box for opening browser on start
+      addToggle(buf, "Open in browser on start", params.showBrowser, "show_browser");
+      buf.append("</tr></table>").append("</p>");
 
       if (params.checkForUpdates) {
         final String updates = CheckUpdates.checkUpdates();
         if (updates.length() > 0) {
           buf.append("</p><p></hr>").append(updates);
-          buf.append("</p><p><a href=\"https://github.com/michael72/pumlsrv/releases/latest\">Download latest release</a>");
+          buf.append(
+              "</p><p><a href=\"https://github.com/michael72/pumlsrv/releases/latest\">Download latest release</a>");
         }
       }
 

@@ -14,7 +14,7 @@ public class AppParams {
   final boolean reload;
   OutputMode outputMode;
   boolean isMonoChrome;
-  final boolean showBrowser;
+  boolean showBrowser;
   final boolean noStore;
   boolean checkForUpdates;
 
@@ -74,6 +74,7 @@ public class AppParams {
     prefs.put("outputMode", outputMode.toString());
     prefs.putBoolean("isMonoChrome", isMonoChrome);
     prefs.putBoolean("checkForUpdates", checkForUpdates);
+    prefs.putBoolean("showBrowser", showBrowser);
   }
 
   public void load() {
@@ -87,6 +88,7 @@ public class AppParams {
     this.outputMode = OutputMode.valueOf(prefs.get("outputMode", outputMode.toString()));
     this.isMonoChrome = prefs.getBoolean("isMonoChrome", isMonoChrome);
     this.checkForUpdates = prefs.getBoolean("checkForUpdates", checkForUpdates);
+    this.showBrowser = prefs.getBoolean("showBrowser", showBrowser);
   }
 
   public void loadPort() {

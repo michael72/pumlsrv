@@ -86,6 +86,7 @@ public class App extends AbstractHttpServer {
   private static final byte FAVICON[] = "/favicon.ico".getBytes();
   private static final byte ROOT[] = "/".getBytes();
   private static final byte ENABLE_CHECK[] = "/check_updates".getBytes();
+  private static final byte SHOW_BROWSER[] = "/show_browser".getBytes();
 
   @Override
   protected HttpStatus handle(final Channel ctx, final Buf buf, final RapidoidHelper req) {
@@ -119,6 +120,9 @@ public class App extends AbstractHttpServer {
           return redirectToRoot(ctx);
         } else if (startsWith(ENABLE_CHECK, buf, req)) {
           this.params.checkForUpdates = !this.params.checkForUpdates;
+          return redirectToRoot(ctx);
+        } else if (startsWith(SHOW_BROWSER, buf, req)) {
+          this.params.showBrowser = !this.params.showBrowser;
           return redirectToRoot(ctx);
         } else if (startsWith(FAVICON, buf, req)) {
           return ok(ctx, req.isKeepAlive.value, Resources.favicon, MediaType.IMAGE_X_ICON);
