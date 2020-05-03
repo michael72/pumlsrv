@@ -8,11 +8,3 @@ jobs:
         - stage: build
           name: jar
           script: mvn --batch-mode --define java.net.useSystemProxies=true clean compile assembly:single
-          before_deploy: cp target/pumlsrv*.jar target/pumlsrv-${TRAVIS_BRANCH}.jar
-          deploy:
-              provider: releases
-              api_key: "$GITHUB_TOKEN"
-              file: "target/pumlsrv-${TRAVIS_BRANCH}.jar"
-              skip_cleanup: true
-              on:
-                  tags: true
