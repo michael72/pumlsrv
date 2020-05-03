@@ -43,7 +43,6 @@ public class App extends AbstractHttpServer {
           { "txt", MediaType.TEXT_PLAIN } })
       .collect(Collectors.toMap(data -> (String) data[0], data -> (MediaType) data[1]));
 
-
   private HttpStatus parsePost(final Channel ctx, final Buf buf, final RapidoidHelper req) throws IOException {
     ctx.write(fullResp(405, "HTTP method POST is not supported by this URL".getBytes()));
     return HttpStatus.DONE;
@@ -54,8 +53,8 @@ public class App extends AbstractHttpServer {
   }
 
   private HttpStatus redirectToRoot(final Channel ctx) {
-    ctx.write(
-        fullResp(303, ("<html><head><meta http-equiv = \"refresh\" content = \"0; url = http://localhost:" + params.port() + "\"/><body></html>").getBytes()));
+    ctx.write(fullResp(303, ("<html><head><meta http-equiv = \"refresh\" content = \"0; url = http://localhost:"
+        + params.port() + "\"/><body></html>").getBytes()));
     return HttpStatus.DONE;
   }
 
@@ -68,10 +67,8 @@ public class App extends AbstractHttpServer {
           final ConverterResult conv_result = PumlApp.toImage(parseUrl, params);
           return ok(ctx, req.isKeepAlive.value, conv_result.bytes, mediaTypes.get(conv_result.image_type));
         } else if (startsWith(EXIT, buf, req)) {
-          Jobs.shutdown();
-          Setup.shutdownAll();
-          System.exit(0);
-          return HttpStatus.ERROR;
+          exitLater(50);
+          return ok(ctx, req.isKeepAlive.value, "pumlsrv exiting...\nBYE!".getBytes(), mediaTypes.get("txt"));
         } else if (startsWith(MOVE_PORT, buf, req)) {
           final String port_str = BytesUtil.get(buf.bytes(), req.query);
           final int move_port = Integer.parseInt(port_str.substring(5)); // remove port=
@@ -120,15 +117,16 @@ public class App extends AbstractHttpServer {
 
   private Server server;
   private Server oldServer;
+
   @Override
   public Server listen(int port) {
     this.server = super.listen(port);
     return this.server;
   }
-  
+
   private void checkOldServer(final boolean shutdown) {
     if (oldServer != null) {
-      synchronized(oldServer) {
+      synchronized (oldServer) {
         try {
           if (shutdown) {
             // back and forth and old server still running? wait a little...
@@ -145,18 +143,35 @@ public class App extends AbstractHttpServer {
       shutdownServer();
     }
   }
-  
+
   private void shutdownServer() {
     oldServer = server;
     new Thread("ShutdownOldPort") {
       public void run() {
-        synchronized(oldServer) {
+        synchronized (oldServer) {
           try {
             oldServer.wait(1000);
             oldServer.shutdown();
             oldServer = null;
           } catch (InterruptedException e) {
           }
+        }
+      }
+    }.start();
+  }
+
+  public static void exitLater(int millis) {
+    new Thread("ExitThread") {
+      @Override
+      public void run() {
+        synchronized (App.class) {
+          try {
+            App.class.wait(millis);
+          } catch (InterruptedException e) {
+          }
+          Jobs.shutdown();
+          Setup.shutdownAll();
+          System.exit(0);
         }
       }
     }.start();

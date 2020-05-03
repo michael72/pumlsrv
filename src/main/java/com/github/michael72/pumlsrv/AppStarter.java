@@ -1,16 +1,22 @@
 package com.github.michael72.pumlsrv;
 
 import java.awt.Desktop;
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class AppStarter {
   private static final int RETRIES = 10;
 
   static int startOnPort(final AppParams sp) {
     Thread thread = null;
+    addPlantUmlJar();
 
     try {
       if (sp.showBrowser && Desktop.isDesktopSupported()) {
@@ -53,10 +59,7 @@ public class AppStarter {
           final HttpURLConnection con = (HttpURLConnection) url.openConnection();
           con.setRequestMethod("GET");
           try {
-            final Object content = con.getContent();
-            if (content != null) {
-              System.out.println(content.toString());
-            }
+            con.getContent();
             System.out.println("Another PlantUML server is running on port " + sp.port() + " - stopping it!");
             // try to kill the other server
             url = new URL(urlPre + "/exit");
@@ -64,10 +67,10 @@ public class AppStarter {
             conExit.setRequestMethod("GET");
             try {
               conExit.getContent();
-            } catch (java.net.ConnectException ce) {
+            } catch (Throwable t) {
             }
             synchronized (con) {
-              con.wait(200);
+              con.wait(500);
             }
             return startOnPort(sp.same());
           } catch (IOException ioe) {
@@ -80,6 +83,62 @@ public class AppStarter {
         }
       }
       return -1;
+    }
+  }
+
+  private static synchronized void loadLibrary(File jar) throws Throwable {
+    ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+    try {
+      final Method method = classLoader.getClass().getDeclaredMethod("addURL", URL.class);
+      method.setAccessible(true);
+      method.invoke(classLoader, jar.toURI().toURL());
+    } catch (NoSuchMethodException e) {
+      Method method = classLoader.getClass().getDeclaredMethod("appendToClassPathForInstrumentation", String.class);
+      method.setAccessible(true);
+      method.invoke(classLoader, jar.getAbsolutePath());
+    }
+  }
+
+  private static boolean added = false;
+
+  static void addPlantUmlJar() {
+    if (added) {
+      return;
+    }
+    String currentFile = null;
+    try {
+      currentFile = Download.getJar(Paths.get(""));
+    } catch (Throwable T) {
+      T.printStackTrace();
+      System.err.println("No update done - no internet connection. Exiting...");
+    }
+    File[] files = new File(".").listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        return name.endsWith(".jar") && name.startsWith("plantuml.");
+      }
+    });
+    if (currentFile != null) {
+      if (files != null && files.length > 1) {
+        // remove old files
+        for (final File file : files) {
+          if (!file.getName().equals(currentFile)) {
+            file.delete();
+          }
+        }
+      }
+    } else if (files != null && files.length > 0){
+      // use the newest of the files
+      Arrays.sort(files);
+      currentFile = files[files.length - 1].getName();
+    }
+    if (currentFile != null) {
+      try {
+        loadLibrary(new File(currentFile));
+        added = true;
+      } catch (Throwable t) {
+        t.printStackTrace();
+      }
     }
   }
 
