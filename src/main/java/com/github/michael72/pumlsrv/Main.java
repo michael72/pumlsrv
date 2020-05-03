@@ -10,7 +10,6 @@ import picocli.CommandLine.Parameters;
 
 import com.github.michael72.pumlsrv.AppParams.OutputMode;
 
-
 @Command(description = "An efficient and small implementation of a PlantUML server.", name = "pumlsrv", mixinStandardHelpOptions = true, version = Resources.version)
 public class Main implements Callable<Integer> {
   private static final int DEFAULT_PORT = 8080;
@@ -36,12 +35,16 @@ public class Main implements Callable<Integer> {
   private File include_file;
   @Option(names = { "-r", "--reload" }, description = "Reload the include file on every access")
   private boolean reload;
-  @Option(names = { "-n", "--nosettings" }, description = "Do not use and store current settings. By default the last settings are saved and used on next startup (without parameters).")
+  @Option(names = { "-n",
+      "--nosettings" }, description = "Do not use and store current settings. By default the last settings are saved and used on next startup (without parameters).")
   private boolean noSettings;
   @Option(names = { "-c", "--clear" }, description = "Clear default settings (except used port)")
   private boolean clear;
-  @Option(names = { "-N", "--nobrowser" }, description = "Do not show browser on startup. By default the browser is opened in the current root page.")
+  @Option(names = { "-N",
+      "--nobrowser" }, description = "Do not show browser on startup. By default the browser is opened on the current root page.")
   private boolean noBrowser;
+  @Option(names = { "-u", "--noupdates" }, description = "Do not check for updates of plantuml.jar and pumlsrv.")
+  private boolean noUpdates;
 
   @Override
   public Integer call() throws Exception {
@@ -65,11 +68,11 @@ public class Main implements Callable<Integer> {
       System.out.println("Using include file " + this.include_file);
     }
 
-    final AppParams params = new AppParams(used_port, 0, this.include_file, this.reload, outputMode, this.monochrome_mode, !this.noBrowser, this.noSettings);
+    final AppParams params = new AppParams(used_port, 0, this.include_file, this.reload, outputMode,
+        this.monochrome_mode, !this.noBrowser, this.noSettings, !this.noUpdates);
     if (this.clear) {
       params.loadPort();
-    }
-    else {
+    } else {
       params.load();
     }
     return AppStarter.startOnPort(params);

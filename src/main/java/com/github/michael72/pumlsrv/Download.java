@@ -79,7 +79,7 @@ public class Download {
     }
   }
 
-  private static String getContent(final InputStream content) throws IOException, UnsupportedEncodingException {
+  static String getContent(final InputStream content) throws IOException, UnsupportedEncodingException {
     final ByteArrayOutputStream bos = new ByteArrayOutputStream();
     writeTo(bos, content, null);
     return new String(bos.toByteArray(), "UTF8");

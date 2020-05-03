@@ -1,1 +1,1 @@
-java -jar target\pumlsrv-1.3.0-jar-with-dependencies.jar %*
+java -jar target\pumlsrv-1.4.0-jar-with-dependencies.jar %*

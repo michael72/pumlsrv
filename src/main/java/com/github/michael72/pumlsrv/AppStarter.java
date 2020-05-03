@@ -16,7 +16,7 @@ public class AppStarter {
 
   static int startOnPort(final AppParams sp) {
     Thread thread = null;
-    addPlantUmlJar();
+    addPlantUmlJar(sp.checkForUpdates);
 
     try {
       if (sp.showBrowser && Desktop.isDesktopSupported()) {
@@ -101,25 +101,34 @@ public class AppStarter {
 
   private static boolean added = false;
 
-  static void addPlantUmlJar() {
+  static void addPlantUmlJar(boolean checkForUpdates) {
     if (added) {
       return;
     }
     String currentFile = null;
-    try {
-      currentFile = Download.getJar(Paths.get(""));
-    } catch (Throwable T) {
-      T.printStackTrace();
-      System.err.println("No update done - no internet connection. Exiting...");
-    }
-    File[] files = new File(".").listFiles(new FilenameFilter() {
+    final File[] files = new File(".").listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         return name.endsWith(".jar") && name.startsWith("plantuml.");
       }
     });
+    final boolean filesEmpty = files == null || files.length == 0;
+
+    if (filesEmpty || checkForUpdates) {
+      try {
+        currentFile = Download.getJar(Paths.get(""));
+      } catch (Throwable T) {
+        T.printStackTrace();
+        System.err.println("No update done - no internet connection. Exiting...");
+      }
+    }
+    
+    if (checkForUpdates) {
+      CheckUpdates.checkUpdates();
+    }
+
     if (currentFile != null) {
-      if (files != null && files.length > 1) {
+      if (files != null && files.length > 0) {
         // remove old files
         for (final File file : files) {
           if (!file.getName().equals(currentFile)) {
@@ -127,7 +136,7 @@ public class AppStarter {
           }
         }
       }
-    } else if (files != null && files.length > 0){
+    } else if (!filesEmpty) {
       // use the newest of the files
       Arrays.sort(files);
       currentFile = files[files.length - 1].getName();

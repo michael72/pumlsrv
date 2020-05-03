@@ -10,7 +10,7 @@ This http server runs on localhost on with the given port - default port is 8080
 ```
 java -jar pumlsrv*.jar -h
 
-Usage: pumlsrv [-cDhLMnNrV] [-i=<include_file>] [PORT]
+Usage: pumlsrv [-cDhLMnNruV] [-i=<include_file>] [PORT]
 An efficient and small implementation of a PlantUML server.
       [PORT]         Port of the http server to connect to
   -c, --clear        Clear default settings (except used port)
@@ -24,13 +24,13 @@ An efficient and small implementation of a PlantUML server.
                        settings are saved and used on next startup (without
                        parameters).
   -N, --nobrowser    Do not show browser on startup. By default the browser is
-                       opened in the current root page.
+                       opened on the current root page.
   -r, --reload       Reload the include file on every access
+  -u, --noupdates    Do not check for updates of plantuml.jar and pumlsrv.
   -V, --version      Print version information and exit.
-
 ```
 
-The main page that pops up (except when using `-N`) can be used to configure the settings. The settings are automatically saved and restored on next startup.
+The main page that pops up (except when using `-N`) can be used to configure the settings. The settings configure here are automatically saved and restored on next startup.
 
 Also the environment variable `PUMLSRV_PORT`is checked and used when no parameter is given.
 

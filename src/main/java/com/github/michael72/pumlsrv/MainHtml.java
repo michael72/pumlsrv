@@ -36,8 +36,10 @@ public class MainHtml {
   }
 
   public byte[] html() throws IOException {
-    final StringBuilder buf = new StringBuilder("<html><head><title>pumlsrv ").append(Resources.version)
-        .append("<link rel=\"shortcut icon\" href=\"/favicon.ico\">").append("</title></head>");
+    final StringBuilder buf = new StringBuilder("<html><head>").append("<style>").append(Resources.switchCss)
+        .append("html *\n" + "{\n" + "   font-family: Arial;\n" + "}\n").append("</style>").append("<title>pumlsrv ")
+        .append(Resources.version).append("<link rel=\"shortcut icon\" href=\"/favicon.ico\">")
+        .append("</title></head>");
     buf.append("<body>").append(Resources.pumlsrvSvg);
 
     try {
@@ -71,7 +73,24 @@ public class MainHtml {
       buf.append("<form class=\"form-inline\" action=\"/move_to\">\n" + " <div class=\"form-group\">\n"
           + "  <label for=\"port\">Port:</label>\n" + "  <input type=\"text\" id=\"port\" name=\"port\" value=\""
           + params.port() + "\">\n" + "  <input type=\"submit\" value=\"Change\">\r\n" + "</div>\n" + "</form> ");
-      buf.append("</p>").append("</body></html>");
+      buf.append("</p><p>");
+      buf.append("<label for=\"switch\">Check for updates on start: </label>");
+      buf.append("<label class=\"switch\" id=\"switch\">\n" + "<input type=\"checkbox\" "
+          + (params.checkForUpdates ? "checked" : "") + ">\n"
+          + "<span class=\"slider round\" id=\"updateSwitch\"></span>\n" + "</label>")
+          .append("<script>" + "function onUpdate() {\n" + "window.location.href='/check_updates';\n" + "}"
+              + "function onUpdate2() {\n" + "setTimeout(onUpdate,400);\n" + "}"
+              + "document.getElementById('updateSwitch').onclick=onUpdate2;\n" + "</script>");
+
+      if (params.checkForUpdates) {
+        final String updates = CheckUpdates.checkUpdates();
+        if (updates.length() > 0) {
+          buf.append("</p><p></hr>").append(updates);
+          buf.append("</p><p><a href=\"https://github.com/michael72/pumlsrv/releases/latest\">Download latest release</a>");
+        }
+      }
+
+      buf.append("</p></body></html>");
     } catch (NoClassDefFoundError err) {
       // show the svg with a red color
       final String s = buf.toString().replaceAll("#006680", "#802020");

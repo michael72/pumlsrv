@@ -23,19 +23,9 @@ public class App extends AbstractHttpServer {
 
   private final AppParams params;
 
-  public App(AppParams params) {
+  public App(final AppParams params) {
     this.params = params;
   }
-
-  private static final byte PLANTUML[] = "/plantuml/".getBytes();
-  private static final byte EXIT[] = "/exit".getBytes();
-  private static final byte MONOCHROME[] = "/mono".getBytes();
-  private static final byte DARK[] = "/dark".getBytes();
-  private static final byte LIGHT[] = "/light".getBytes();
-  private static final byte DEFAULT[] = "/default".getBytes();
-  private static final byte MOVE_PORT[] = "/move_to".getBytes();
-  private static final byte FAVICON[] = "/favicon.ico".getBytes();
-  private static final byte ROOT[] = "/".getBytes();
 
   private static Map<String, MediaType> mediaTypes = Stream
       .of(new Object[][] { { "svg", MediaType.SVG }, { "png", MediaType.PNG },
@@ -53,10 +43,49 @@ public class App extends AbstractHttpServer {
   }
 
   private HttpStatus redirectToRoot(final Channel ctx) {
-    ctx.write(fullResp(303, ("<html><head><meta http-equiv = \"refresh\" content = \"0; url = http://localhost:"
-        + params.port() + "\"/><body></html>").getBytes()));
+    // works better with scripting part than http-equiv + redirect (for IE)
+    ctx.write(fullResp(200,
+        ("<html><head><script>\n" + "window.location=\"/\"\n" + "</script></head><body/></html>").getBytes()));
     return HttpStatus.DONE;
   }
+
+  private HttpStatus movePort(final int newPort, final Buf buf, final Channel ctx) {
+    checkOldServer(true);
+    params.setPort(newPort);
+    this.listen(newPort);
+
+    final String data = buf.data();
+    boolean ie = false;
+    final int idx = data.indexOf("User-Agent");
+    if (idx != -1) {
+      final String agent = data.substring(idx, data.indexOf('\n', idx));
+      // ie: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko
+      ie = agent.contains("Trident");
+    }
+
+    final String url = "http://localhost:" + params.port();
+    if (ie) {
+      ctx.write(
+          fullResp(200, ("<html><head><script>window.location=\"" + url + "\";</script></head></html>").getBytes()));
+    } else {
+      // non-ie browser works better with http-equiv when old location is not valid
+      // any more
+      ctx.write(fullResp(303,
+          ("<html><head><meta http-equiv = \"refresh\" content=\"0; url=" + url + "\"/></head></html>").getBytes()));
+    }
+    return HttpStatus.DONE;
+  }
+
+  private static final byte PLANTUML[] = "/plantuml/".getBytes();
+  private static final byte EXIT[] = "/exit".getBytes();
+  private static final byte MONOCHROME[] = "/mono".getBytes();
+  private static final byte DARK[] = "/dark".getBytes();
+  private static final byte LIGHT[] = "/light".getBytes();
+  private static final byte DEFAULT[] = "/default".getBytes();
+  private static final byte MOVE_PORT[] = "/move_to".getBytes();
+  private static final byte FAVICON[] = "/favicon.ico".getBytes();
+  private static final byte ROOT[] = "/".getBytes();
+  private static final byte ENABLE_CHECK[] = "/check_updates".getBytes();
 
   @Override
   protected HttpStatus handle(final Channel ctx, final Buf buf, final RapidoidHelper req) {
@@ -73,9 +102,7 @@ public class App extends AbstractHttpServer {
           final String port_str = BytesUtil.get(buf.bytes(), req.query);
           final int move_port = Integer.parseInt(port_str.substring(5)); // remove port=
           if (move_port != params.port()) {
-            params.setPort(move_port);
-            checkOldServer(true);
-            this.listen(move_port);
+            return movePort(move_port, buf, ctx);
           }
           return redirectToRoot(ctx);
         } else if (startsWith(MONOCHROME, buf, req)) {
@@ -89,6 +116,9 @@ public class App extends AbstractHttpServer {
           return redirectToRoot(ctx);
         } else if (startsWith(DEFAULT, buf, req)) {
           this.params.setDefaultMode();
+          return redirectToRoot(ctx);
+        } else if (startsWith(ENABLE_CHECK, buf, req)) {
+          this.params.checkForUpdates = !this.params.checkForUpdates;
           return redirectToRoot(ctx);
         } else if (startsWith(FAVICON, buf, req)) {
           return ok(ctx, req.isKeepAlive.value, Resources.favicon, MediaType.IMAGE_X_ICON);

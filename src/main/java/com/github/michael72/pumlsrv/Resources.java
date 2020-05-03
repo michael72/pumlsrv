@@ -8,5 +8,17 @@ public class Resources {
 
   public final static String pumlsrvSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"238.76\" height=\"124.221\" viewBox=\"0 0 63.172 32.867\"><text style=\"line-height:1.25;-inkscape-font-specification:'MV Boli';text-align:end\" x=\"80.284\" y=\"138.779\" stroke-width=\".265\" font-family=\"MV Boli\" font-size=\"10.583\" font-weight=\"400\" letter-spacing=\"0\" text-anchor=\"end\" transform=\"translate(-36.987 -126.566)\" word-spacing=\"0\"><tspan x=\"80.284\" y=\"138.779\" style=\"text-align:end\" fill=\"#006680\" font-size=\"14.111\">puml</tspan><tspan x=\"80.284\" y=\"156.418\" style=\"text-align:end\" fill=\"#006680\" font-size=\"14.111\">srv</tspan></text><path fill=\"#006680\" d=\"M0 32.867c.207-.241.419-.478.62-.724 1.26-1.533.348-.511 1.712-2.085.842-.97 1.726-1.905 2.578-2.867.976-1.18 1.998-2.338 3.189-3.31.681-.556 1.149-.838 1.88-1.32.313-.185.622-.377.939-.555 1.417-.791 2.83-1.589 4.262-2.352.304-.162 1.703-.75 2.008-.884 1.924-.844.115-.077 1.972-.855 1.63-.767 3.27-1.14 5.028-1.448 1.382-.228 2.778-.365 4.178-.316 1.294.098 2.555.426 3.844.573.861.099 1.565.12 2.433.162 1.986.04 3.978.104 5.962-.008a34.45 34.45 0 004.8-.803c2.196-.522 4.265-1.428 6.281-2.423.334-.186 1.336-.745 1.003-.557-.754.424-1.483.894-2.263 1.267-.363.173.679-.435 1.007-.668 1.1-.78 2.012-1.675 2.94-2.647 1.926-2.09 3.278-4.577 4.47-7.133.637-1.575.348-.807.875-2.3L63.172 0c-.546 1.523-.25.74-.893 2.346-1.181 2.584-2.51 5.107-4.417 7.242-.671.73-1.136 1.278-1.883 1.93a17.996 17.996 0 01-2 1.468c-3.44 2.081-3.073 1.867-5.266 3.039-2.05.979-4.146 1.874-6.368 2.384a32.781 32.781 0 01-4.854.753c-1.977.068-3.956.002-5.932-.06-.982-.053-1.5-.065-2.47-.179-1.288-.15-2.558-.46-3.859-.502a23.761 23.761 0 00-4.124.37c-1.707.316-3.371.757-4.951 1.496-.998.423-1.994.854-2.983 1.298-.327.148-1.27.662-.979.451.726-.524 1.54-.915 2.292-1.4.307-.196-.634.36-.951.539-.608.386-1.335.827-1.904 1.27-1.208.94-2.248 2.084-3.211 3.267-1.16 1.314-2.407 2.557-3.506 3.924-.263.326-.5.674-.757 1.005-.188.242-.386.476-.579.714L0 32.867z\"/></svg>";
   
-  public final static String version = "1.3.0";
+  public final static String version = "1.4.0";
+  
+  public final static String switchCss = ".switch {  position: relative;  display: inline-block;  width: 60px;  height: 17px;}\r\n" + 
+      ".switch input {  opacity: 0;  width: 0;  height: 0;}\r\n" + 
+      ".slider {  position: absolute;  cursor: pointer;  top: 0;  left: 0;  right: 0;  bottom: 0;  background-color: #ccc;  -webkit-transition: .4s;  transition: .4s;}\r\n" + 
+      ".slider:before {  position: absolute;  content: \"\";  height: 13px;  width: 26px;  left: 4px;  bottom: 2px;  background-color: white;  -webkit-transition: .4s;  transition: .4s;}input:checked + \r\n" + 
+      ".slider {  background-color: #2196F3;}input:focus + \r\n" + 
+      ".slider {  box-shadow: 0 0 1px #2196F3;}input:checked + \r\n" + 
+      ".slider:before {  -webkit-transform: translateX(26px);  -ms-transform: translateX(26px);  transform: translateX(26px);}\r\n" + 
+      ".slider\r\n" + 
+      ".round {  border-radius: 34px;}\r\n" + 
+      ".slider\r\n" + 
+      ".round:before {  border-radius: 50%;}";
 }
