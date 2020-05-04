@@ -17,10 +17,11 @@ public class AppParams {
   boolean showBrowser;
   final boolean noStore;
   boolean checkForUpdates;
+  final boolean loadDynamicJar;
 
   public AppParams(final int port, final int offset, final File includeFile, final boolean reload,
       final OutputMode outputMode, final boolean isMonoChrome, final boolean showBrowser, final boolean noStore,
-      final boolean checkForUpdates) {
+      final boolean checkForUpdates, final boolean loadDynamicJar) {
     this.port = port;
     this.offset = offset;
     this.includeFile = includeFile;
@@ -30,6 +31,7 @@ public class AppParams {
     this.showBrowser = showBrowser;
     this.noStore = noStore;
     this.checkForUpdates = checkForUpdates;
+    this.loadDynamicJar = loadDynamicJar;
   }
 
   public AppParams next() {

@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class AppStarter {
@@ -16,8 +17,9 @@ public class AppStarter {
 
   static int startOnPort(final AppParams sp) {
     Thread thread = null;
-    addPlantUmlJar(sp.checkForUpdates);
-
+    if (sp.loadDynamicJar) {
+      addPlantUmlJar(sp.checkForUpdates);
+    }
     try {
       if (sp.showBrowser && Desktop.isDesktopSupported()) {
         thread = new Thread() {
@@ -92,10 +94,34 @@ public class AppStarter {
       final Method method = classLoader.getClass().getDeclaredMethod("addURL", URL.class);
       method.setAccessible(true);
       method.invoke(classLoader, jar.toURI().toURL());
-    } catch (NoSuchMethodException e) {
-      Method method = classLoader.getClass().getDeclaredMethod("appendToClassPathForInstrumentation", String.class);
-      method.setAccessible(true);
-      method.invoke(classLoader, jar.getAbsolutePath());
+    } catch (Throwable t) {
+      try {
+        Method method = classLoader.getClass().getDeclaredMethod("appendToClassPathForInstrumentation", String.class);
+        method.setAccessible(true);
+        method.invoke(classLoader, jar.getAbsolutePath());
+      } catch (Throwable T) {
+        // TODO add custom classloader to manifest / pom.xml - this is just a (hopefully
+        // temporary) workaround for java 14
+        ArrayList<String> args = new ArrayList<String>();
+        final String thisJar = new java.io.File(
+            AppStarter.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getName();
+        args.add("java");
+        args.add("-cp");
+        args.add(thisJar + File.pathSeparator + jar.getName());
+        args.add(Main.class.getName());
+        args.addAll(Arrays.asList(Main.theArgs));
+        args.add("-j");
+        System.out.println("java14 hack - restarting with: ");
+        for (String arg: args) {
+          System.out.print(arg);
+          System.out.print(" ");
+        }
+        System.out.println();
+        final String[] theArgs = new String[args.size()];
+        Runtime.getRuntime().exec(args.toArray(theArgs), null, new File(".").getAbsoluteFile());
+        System.out.println("Other job is running in background now - exiting.");
+        System.exit(0);
+      }
     }
   }
 
@@ -122,7 +148,7 @@ public class AppStarter {
         System.err.println("No update done - no internet connection. Exiting...");
       }
     }
-    
+
     if (checkForUpdates) {
       CheckUpdates.checkUpdates();
     }

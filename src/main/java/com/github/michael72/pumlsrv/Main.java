@@ -45,6 +45,8 @@ public class Main implements Callable<Integer> {
   private boolean noBrowser;
   @Option(names = { "-u", "--noupdates" }, description = "Do not check for updates of plantuml.jar and pumlsrv.")
   private boolean noUpdates;
+  @Option(names = { "-j", "--nodynamicjar" }, description = "Do not try to load the plantuml.jar dynamically.")
+  private boolean noDynamicJar;
 
   @Override
   public Integer call() throws Exception {
@@ -69,7 +71,7 @@ public class Main implements Callable<Integer> {
     }
 
     final AppParams params = new AppParams(used_port, 0, this.include_file, this.reload, outputMode,
-        this.monochrome_mode, !this.noBrowser, this.noSettings, !this.noUpdates);
+        this.monochrome_mode, !this.noBrowser, this.noSettings, !this.noUpdates, !this.noDynamicJar);
     if (this.clear) {
       params.loadPort();
     } else {
@@ -78,7 +80,9 @@ public class Main implements Callable<Integer> {
     return AppStarter.startOnPort(params);
   }
 
-  public static void main(String... args) throws Exception {
+  static String[] theArgs;
+  public static void main(String[] args) throws Exception {
+    theArgs = args;
     int exitCode = new CommandLine(new Main()).execute(args);
     if (exitCode != 0) {
       System.exit(exitCode);
