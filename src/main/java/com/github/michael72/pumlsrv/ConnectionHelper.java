@@ -12,8 +12,12 @@ import java.net.URL;
  */
 public class ConnectionHelper {
   
-  private static HttpURLConnection getConnection(final URL url, boolean useProxy) throws IOException {    
-    final String proxySetting = System.getenv("HTTP_PROXY");
+  private static HttpURLConnection getConnection(final URL url, boolean useProxy) throws IOException {
+    final String http_proxy = System.getenv("HTTP_PROXY");
+    String proxySetting = url.getProtocol().toLowerCase().contains("https") ? System.getenv("HTTPS_PROXY") : http_proxy;
+    if (useProxy && proxySetting == null && http_proxy != null) {
+      proxySetting = http_proxy; // http is fallback for https
+    }
     if (useProxy && proxySetting != null && proxySetting.contains(":")) {
       final int idx = proxySetting.lastIndexOf(':');
       Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(
