@@ -7,13 +7,14 @@ This is a small (fast) replacement of [Plant-UML Server](https://github.com/plan
 
 Ease of use: the main settings can be configured on the main page and will be saved and restored on next startup.
 
-Up to date: the newest plantuml*.jar is automatically downloaded. The download is saved to the current directory of pumlsrv.jar. The updates can be switched off or done manually - just copy a valid plantuml*.jar file to the same directory. 
+Up to date: the newest plantuml*.jar is automatically downloaded. The download is saved to the current directory of pumlsrv.jar. The updates can be switched off or done manually - just copy a valid plantuml*.jar file to the same directory - zip files have to be unpacked first. 
 
 ![pumlsrv mainpage](mainpage.png "Main Page")
 
 ## Usage
 
 This http server runs on localhost on with the given port - default port is 8080. When using `h` parameter the options are shown: 
+
 ```
 java -jar pumlsrv*.jar -h
 
@@ -40,10 +41,12 @@ An efficient and small implementation of a PlantUML server.
 
 The main page that pops up (except when using `-N`) can be used to configure the settings. The settings configure here are automatically saved and restored on next startup.
 
-Also the environment variable `PUMLSRV_PORT`is checked and used when no parameter is given.
+Also the environment variable `PUMLSRV_PORT`is checked and used when no parameter is given to configure the port.
 
-Editors that can connect to the official PlantUML - such as jebbs excellent PlantUML plugin running in Visual Studio Code - can simply connect via http protocol.
+The environment variables `HTTP_PROXY` and `HTTPS_PROXY` are checked when downloading updates behind a proxy.
 
-As the official Plant-UML server pumlsrv also supports output types png, svg, eps, epstext and txt.
+Editors that can connect to the official PlantUML server - such as jebbs excellent PlantUML plugin running in Visual Studio Code or CodiMD- can simply connect to pumlsrv via http protocol.
+
+Like the official Plant-UML server pumlsrv also supports the output types png, svg, eps, epstext and txt.
 
 Enjoy!
