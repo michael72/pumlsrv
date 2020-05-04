@@ -118,7 +118,7 @@ public class MainHtml {
       buf.append(s).append("<p><h2>Error: Unable to start pumlsrv!</h2><p>")
           .append("<p><b>No plantuml*.jar found in current directory and could not be downloaded from server</b></p>")
           .append("<p>Current directory is " + new File(".").getAbsolutePath() + "</p>").append(
-              "<p>Please check your internet connection and try again or download <a href=\"https://sourceforge.net/projects/plantuml/files/latest\">here</a></p>");
+              "<p>Please check your internet connection and try again or download <a href=\"https://sourceforge.net/projects/plantuml/files\">here</a></p>");
       App.exitLater(200);
     }
 
