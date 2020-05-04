@@ -3,9 +3,7 @@ package com.github.michael72.pumlsrv;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -54,32 +52,23 @@ public class AppStarter {
       } catch (Throwable t) {
       }
       if ("Server start-up failed!".equals(ex.getMessage())) {
-        URL url;
+        final String urlPre = "http://localhost:" + (sp.port());
         try {
-          final String urlPre = "http://localhost:" + (sp.port());
-          url = new URL(urlPre + "/plantuml/txt/SoWkIImgAStDuN9KqBLJSE9oICrB0N81");
-          final HttpURLConnection con = (HttpURLConnection) url.openConnection();
-          con.setRequestMethod("GET");
-          try {
-            con.getContent();
+          if (ConnectionHelper.getLocalContent(urlPre + "/plantuml/txt/SoWkIImgAStDuN9KqBLJSE9oICrB0N81") != null) {
+
             System.out.println("Another PlantUML server is running on port " + sp.port() + " - stopping it!");
             // try to kill the other server
-            url = new URL(urlPre + "/exit");
-            final HttpURLConnection conExit = (HttpURLConnection) url.openConnection();
-            conExit.setRequestMethod("GET");
-            try {
-              conExit.getContent();
-            } catch (Throwable t) {
+            if (ConnectionHelper.getLocalContent(urlPre + "/exit") != null) {
+              // other server exited
+              synchronized (AppStarter.class) {
+                AppStarter.class.wait(500);
+              }
+              return startOnPort(sp.same());
             }
-            synchronized (con) {
-              con.wait(500);
-            }
-            return startOnPort(sp.same());
-          } catch (IOException ioe) {
-            ioe.printStackTrace();
-            // continue with next port
-            return startOnPort(sp.next());
           }
+          // continue with next port
+          return startOnPort(sp.next());
+
         } catch (Throwable T) {
           T.printStackTrace();
         }
@@ -112,7 +101,7 @@ public class AppStarter {
         args.addAll(Arrays.asList(Main.theArgs));
         args.add("-j");
         System.out.println("java14 hack - restarting with: ");
-        for (String arg: args) {
+        for (String arg : args) {
           System.out.print(arg);
           System.out.print(" ");
         }

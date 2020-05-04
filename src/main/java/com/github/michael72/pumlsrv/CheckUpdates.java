@@ -1,8 +1,6 @@
 package com.github.michael72.pumlsrv;
 
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 /**
  * Check for updates of pumlsrv on github.
@@ -18,13 +16,9 @@ public class CheckUpdates {
 
     try {
       final String latest = "https://github.com/michael72/pumlsrv/releases/latest";
-      final URL url = new URL(latest);
-      final HttpURLConnection con = (HttpURLConnection) url.openConnection();
-      con.setRequestMethod("GET");
-
-      final Object content = con.getContent();
+      final InputStream content = ConnectionHelper.getContent(latest);
       if (content != null) {
-        final String lines = Download.getContent((InputStream) content);
+        final String lines = Download.getContent(content);
         int idx = lines.indexOf("Latest release");
         if (idx != -1) {
           idx = lines.indexOf("title=", idx);

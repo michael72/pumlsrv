@@ -24,13 +24,9 @@ public class Download {
   public static String getJar(final Path saveTo) throws IOException {
     System.out.println("Checking for updates");
     // check on RSS feed for newest available version
-    final URL url = new URL(rss);
-    final HttpURLConnection con = (HttpURLConnection) url.openConnection();
-    con.setRequestMethod("GET");
-
-    final Object content = con.getContent();
+    final InputStream content = ConnectionHelper.getContent(rss);
     if (content != null) {
-      final String lines = getContent((InputStream) content);
+      final String lines = getContent(content);
       int idxJarEnd = lines.indexOf(".jar]") + 4;
       if (idxJarEnd != 3) {
         final int idxJar = lines.lastIndexOf("[", idxJarEnd) + 1;
@@ -94,7 +90,7 @@ public class Download {
       tmp.delete();
     }
 
-    final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+    final HttpURLConnection con = ConnectionHelper.getConnection(url);
     if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
       try (final InputStream in = con.getInputStream(); final FileOutputStream out = new FileOutputStream(tmp)) {
         // download file and print progress
