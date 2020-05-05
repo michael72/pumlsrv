@@ -70,7 +70,15 @@ public class PumlApp {
     }
     umlBuf.append(uml);
     checkStartUml(umlBuf);
-    return UmlConverter.toImage(umlBuf.toString(), imageType);
+    
+    ConverterResult result =  UmlConverter.toImage(umlBuf.toString(), imageType);
+    if (result.isError) {
+      umlBuf.setLength(0);
+      umlBuf.append(uml);
+      checkStartUml(umlBuf);
+      result = UmlConverter.toErrorResult(umlBuf.toString());
+    }
+    return result;
   }
 
   public static ConverterResult toImage(ParseUrl parseUrl, final AppParams params) throws IOException {
