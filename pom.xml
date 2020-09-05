@@ -1,6 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.michael72.pumlsrv</groupId>
 	<artifactId>pumlsrv</artifactId>
@@ -37,18 +35,18 @@
 		<dependency>
 			<groupId>net.sourceforge.plantuml</groupId>
 			<artifactId>plantuml</artifactId>
-			<version>1.2020.8</version>
+			<version>1.2020.16</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.8</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
-  			<groupId>info.picocli</groupId>
-  			<artifactId>picocli</artifactId>
-  			<version>4.2.0</version>
+			<groupId>info.picocli</groupId>
+			<artifactId>picocli</artifactId>
+			<version>4.5.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -72,14 +70,14 @@
 				<version>3.8.1</version>
 				<configuration>
 					<annotationProcessorPaths>
-					<path>
-						<groupId>info.picocli</groupId>
-						<artifactId>picocli-codegen</artifactId>
-						<version>4.2.0</version>
-					</path>
+						<path>
+							<groupId>info.picocli</groupId>
+							<artifactId>picocli-codegen</artifactId>
+							<version>4.5.1</version>
+						</path>
 					</annotationProcessorPaths>
 					<compilerArgs>
-					<arg>-Aproject=${project.groupId}/${project.artifactId}</arg>
+						<arg>-Aproject=${project.groupId}/${project.artifactId}</arg>
 					</compilerArgs>
 				</configuration>
 			</plugin>
