@@ -55,8 +55,8 @@ public class CheckUpdates {
     }
     final String[] v = version.split("\\.");
     int ret = 0;
-    for (int i = 0; i < 2; ++i) {
-      ret = 10 * (ret + (i < v.length ? Integer.parseInt(v[i]) : 0));
+    for (int i = 0; i < 3; ++i) {
+      ret = 10 * ret + (i < v.length ? Integer.parseInt(v[i]) : 0);
     }
     return ret;
   }
