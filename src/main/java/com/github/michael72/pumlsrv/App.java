@@ -17,8 +17,10 @@ import org.rapidoid.net.impl.RapidoidHelper;
 import org.rapidoid.setup.Setup;
 
 /// Simple implementation of HttpServer that handles Plantuml-requests 
-/// both as get and post - on the path /plantuml/svg creating an SVG
-/// Image as a result.
+/// both as get and post.
+/// The plantuml specific requests are forwarded to PumlApp.
+/// This App can also handle configuration requests that are sent from the main 
+/// configuration HTML page.
 public class App extends AbstractHttpServer {
 
   private final AppParams params;
@@ -76,6 +78,7 @@ public class App extends AbstractHttpServer {
     return HttpStatus.DONE;
   }
 
+  // All supported URL requests
   private static final byte PLANTUML[] = "/plantuml/".getBytes();
   private static final byte EXIT[] = "/exit".getBytes();
   private static final byte MONOCHROME[] = "/mono".getBytes();
@@ -93,9 +96,12 @@ public class App extends AbstractHttpServer {
     try {
       if (req.isGet.value) {
         if (startsWith(PLANTUML, buf, req)) {
+          // plantuml request
+          // System.out.println(buf.asText()); // for debug purposes: print the actual HTML request
           final ParseUrl parseUrl = new ParseUrl(buf, req.path, PLANTUML.length);
           final ConverterResult conv_result = PumlApp.toImage(parseUrl, params);
           return ok(ctx, req.isKeepAlive.value, conv_result.bytes, mediaTypes.get(conv_result.image_type));
+          // rest are config requests for this webserver
         } else if (startsWith(EXIT, buf, req)) {
           exitLater(50);
           return ok(ctx, req.isKeepAlive.value, "pumlsrv exiting...\nBYE!".getBytes(), mediaTypes.get("txt"));

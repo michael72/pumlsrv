@@ -39,36 +39,34 @@ public class UmlConverter {
       .collect(Collectors.toMap(data -> (String) data[0], data -> (FileFormat) data[1]));
 
   /// Convert Plant-UML string to an image.
-  public static ConverterResult toImage(final String uml, final String imageType) throws IOException {
+  public static ConverterResult toImage(final String uml, final int idx, final String imageType) throws IOException {
     final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
     // Write the first image to "os"
-    final DiagramDescription desc = new SourceStringReader(uml).outputImage(os,
+    final DiagramDescription desc = new SourceStringReader(uml).outputImage(os, idx,
         new FileFormatOption(fileFormats.get(imageType)));
     final boolean isError = desc.getDescription() == "(Error)" && imageType.contentEquals("svg");
 
     return new ConverterResult(os.toByteArray(), desc.getDescription(), imageType, isError);
   }
 
-  public static ConverterResult toErrorResult(final String uml) throws IOException {
+  public static ConverterResult toErrorResult(final String uml, final int idx) throws IOException {
     // re-write the SVG output with the actual text content
     // otherwise there is too much noise in the created image
-    final ConverterResult result = toImage(uml, "txt");
+    final ConverterResult result = toImage(uml, idx, "txt");
     String img = new String(result.bytes, Charset.forName("UTF-8"));
 
     int max_length = 0;
     final String[] arr = img.split("\n");
     List<String> lines = new ArrayList<String>(arr.length);
-    int idx = 0;
-    while (idx < arr.length) {
-      String line = arr[idx].trim();
+    for (String line : arr) {
+      line = line.trim();
       if (line.length() > 0 && line.charAt(0) != '@') {
         // trim right and escape to HTML
-        line = StringEscapeUtils.escapeHtml4(arr[idx].replaceAll("\\s+$", ""));
+        line = StringEscapeUtils.escapeHtml4(line.replaceAll("\\s+$", ""));
         max_length = Math.max(max_length, line.length());
         lines.add(line);
       }
-      ++idx;
     }
     if (lines.size() > 8) {
       final List<String> croppedList = lines.subList(0, 4);

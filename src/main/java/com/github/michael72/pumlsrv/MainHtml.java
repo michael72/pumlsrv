@@ -61,7 +61,7 @@ public class MainHtml {
 
     try {
       // show hello UML diagram in current style setting
-      buf.append("<p style=\"margin-top: -3px;\">").append(new String(PumlApp.toImage(hello(), params, "svg").bytes))
+      buf.append("<p style=\"margin-top: -3px;\">").append(new String(PumlApp.toImage(hello(), 0, params, "svg").bytes))
           .append("</p>");
 
       // mode selection
