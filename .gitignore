@@ -13,3 +13,7 @@ buildNumber.properties
 .classpath
 .settings/
 *.jar
+.bloop/
+.metals/
+.vscode/
+.factorypath

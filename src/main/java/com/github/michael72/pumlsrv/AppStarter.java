@@ -16,7 +16,7 @@ public class AppStarter {
   static int startOnPort(final AppParams sp) {
     Thread thread = null;
     if (sp.loadDynamicJar) {
-      addPlantUmlJar(sp.checkForUpdates);
+      addPlantUmlJar(sp);
     }
     try {
       if (sp.showBrowser && Desktop.isDesktopSupported()) {
@@ -77,7 +77,7 @@ public class AppStarter {
     }
   }
 
-  private static synchronized void loadLibrary(File jar) throws Throwable {
+  private static synchronized void loadLibrary(File jar, final AppParams sp) throws Throwable {
     ClassLoader classLoader = ClassLoader.getSystemClassLoader();
     try {
       final Method method = classLoader.getClass().getDeclaredMethod("addURL", URL.class);
@@ -93,7 +93,7 @@ public class AppStarter {
         // temporary) workaround for java 14
         ArrayList<String> args = new ArrayList<String>();
         final String thisJar = new java.io.File(
-            AppStarter.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getName();
+            AppStarter.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getAbsolutePath();
         args.add("java");
         args.add("-cp");
         args.add(thisJar + File.pathSeparator + jar.getName());
@@ -109,6 +109,7 @@ public class AppStarter {
         final String[] theArgs = new String[args.size()];
         Runtime.getRuntime().exec(args.toArray(theArgs), null, new File(".").getAbsoluteFile());
         System.out.println("Other job is running in background now - exiting.");
+        System.out.println("pumlserver: listening on http://localhost:" + (sp.port()) + "/plantuml");
         System.exit(0);
       }
     }
@@ -116,7 +117,7 @@ public class AppStarter {
 
   private static boolean added = false;
 
-  static void addPlantUmlJar(boolean checkForUpdates) {
+  static void addPlantUmlJar(final AppParams sp) {
     if (added) {
       return;
     }
@@ -129,7 +130,7 @@ public class AppStarter {
     });
     final boolean filesEmpty = files == null || files.length == 0;
 
-    if (filesEmpty || checkForUpdates) {
+    if (filesEmpty || sp.checkForUpdates) {
       try {
         currentFile = Download.getJar(Paths.get(""));
       } catch (Throwable T) {
@@ -138,7 +139,7 @@ public class AppStarter {
       }
     }
 
-    if (checkForUpdates) {
+    if (sp.checkForUpdates) {
       CheckUpdates.checkUpdates();
     }
 
@@ -158,7 +159,7 @@ public class AppStarter {
     }
     if (currentFile != null) {
       try {
-        loadLibrary(new File(currentFile));
+        loadLibrary(new File(currentFile), sp);
         added = true;
       } catch (Throwable t) {
         t.printStackTrace();
