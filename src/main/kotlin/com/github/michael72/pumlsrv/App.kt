@@ -169,16 +169,17 @@ class App(private val params: AppParams) {
         ctx.contentType("text/html").result(html)
     }
     
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") 
     private fun checkOldServer(shutdown: Boolean) {
         oldJavalinApp?.let { oldApp ->
             synchronized(oldApp) {
                 try {
                     if (shutdown) {
                         // Back and forth and old server still running? wait a little...
-                        oldApp.await(1000)
+                        Thread.sleep(1000)
                     } else {
                         // Notify shutdown thread that new server port is up
-                        oldApp.signal()
+                        (oldApp as java.lang.Object).notify()
                     }
                 } catch (t: Throwable) {
                     // Ignore
@@ -191,13 +192,14 @@ class App(private val params: AppParams) {
         }
     }
     
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") 
     private fun shutdownServer() {
         oldJavalinApp = javalinApp
         
         Thread({
             synchronized(oldJavalinApp!!) {
                 try {
-                    oldJavalinApp!!.wait(1000)
+                    (oldJavalinApp!! as java.lang.Object).wait(1000)
                     oldJavalinApp!!.stop()
                     oldJavalinApp = null
                 } catch (e: InterruptedException) {
@@ -209,11 +211,11 @@ class App(private val params: AppParams) {
     
     companion object {
         fun exitLater(millis: Long) {
-            val executor = Executors.newSingleThreadExecutor()
-            executor.scheduleAtFixedRate({
+            val executor = Executors.newSingleThreadScheduledExecutor()
+            executor.schedule({
                 synchronized(App::class.java) {
                     try {
-                        App::class.java.await(millis)
+                        Thread.sleep(millis)
                     } catch (e: InterruptedException) {
                         // Ignore
                     }

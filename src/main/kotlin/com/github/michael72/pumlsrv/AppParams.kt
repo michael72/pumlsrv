@@ -4,7 +4,7 @@ import java.io.File
 import java.util.prefs.Preferences
 
 data class AppParams(
-    var port: Int,
+    var portStart: Int,
     var offset: Int = 0,
     val includeFile: File? = null,
     val reload: Boolean = false,
@@ -25,15 +25,15 @@ data class AppParams(
     }
 
     fun same(): AppParams {
-        port--
+        portStart--
         offset++
         return this
     }
 
-    fun port(): Int = port + offset
+    fun port(): Int = portStart + offset
 
     fun setPort(newPort: Int) {
-        port = newPort
+        portStart = newPort
         offset = 0
     }
 
@@ -65,9 +65,7 @@ data class AppParams(
         if (noStore) return
         
         val prefs = Preferences.userNodeForPackage(AppParams::class.java)
-        port = prefs.getInt("port", port())
-        val inc = prefs.get("include", "")
-        val includeFileFromPrefs = if (inc.isNotEmpty()) File(inc) else null
+        portStart = prefs.getInt("port", port())
         outputMode = OutputMode.valueOf(prefs.get("outputMode", outputMode.toString()))
         isMonoChrome = prefs.getBoolean("isMonoChrome", isMonoChrome)
         checkForUpdates = prefs.getBoolean("checkForUpdates", checkForUpdates)
@@ -76,6 +74,6 @@ data class AppParams(
 
     fun loadPort() {
         val prefs = Preferences.userNodeForPackage(AppParams::class.java)
-        port = prefs.getInt("port", port())
+        portStart = prefs.getInt("port", port())
     }
 }

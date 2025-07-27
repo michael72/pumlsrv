@@ -25,7 +25,7 @@ object AppStarter {
                 thread = Thread({
                     try {
                         synchronized(this) {
-                            await(3000)
+                            Thread.sleep(3000)
                             if (sp.offset == 0) {
                                 Desktop.getDesktop().browse(URI("http://localhost:${sp.port()}"))
                             }
@@ -64,7 +64,7 @@ object AppStarter {
                         if (ConnectionHelper.getLocalContent("$urlPre/exit") != null) {
                             // Other server exited
                             synchronized(AppStarter::class.java) {
-                                AppStarter::class.java.await(500)
+                                Thread.sleep(500)
                             }
                             return startOnPort(sp.same())
                         }
