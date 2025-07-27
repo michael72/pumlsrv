@@ -6,55 +6,81 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.regex.Pattern
 
 /**
  * Check for updates on plantuml jar and download newest version.
  */
 object Download {
-    private const val ROOT = "https://sourceforge.net/projects/plantuml"
-    private const val RSS = "$ROOT/rss?path=/"
+    private const val MAVEN_BASE = "https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml"
     private const val BLOCK_SIZE = 4096
 
     fun getJar(saveTo: Path): String? {
         println("Checking for updates")
-        // Check on RSS feed for newest available version
-        val content = ConnectionHelper.getContent(RSS) ?: return null
         
-        val lines = getContent(content)
-        val idxJarEnd = lines.indexOf(".jar]") + 4
-        if (idxJarEnd == 3) return null
+        // Get the HTML content from Maven repository
+        val content = ConnectionHelper.getContent(MAVEN_BASE) ?: return null
+        val htmlContent = getContent(content)
         
-        val idxJar = lines.lastIndexOf("[", idxJarEnd) + 1
-        if (idxJar == 0) return null
+        // Parse HTML to find the newest version
+        val newestVersion = findNewestVersion(htmlContent) ?: return null
+        println("Found newest version: $newestVersion")
         
-        val jar = lines.substring(idxJar, idxJarEnd)
-        val filename = jar.substring(jar.lastIndexOf("/") + 1)
+        val filename = "plantuml-$newestVersion.jar"
+        val targetFile = Paths.get(saveTo.toString(), filename)
         
-        if (Files.exists(Paths.get(saveTo.toString() + filename))) {
+        if (Files.exists(targetFile)) {
             println("Already got newest plantuml file $filename")
             return filename
         }
         
         // Download the jar file
-        // sf sometimes is really slow - better download at mvnrepository
-        val download = "https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml" + 
-                jar.replace("plantuml.", "plantuml-")
-        println("Downloading $download ...")
+        val downloadUrl = "$MAVEN_BASE/$newestVersion/plantuml-$newestVersion.jar"
+        println("Downloading $downloadUrl ...")
         
-        var result: String? = null
-        try {
-            result = downloadFile(URL(download), filename, saveTo.toString())
+        return try {
+            downloadFile(URL(downloadUrl), filename, saveTo.toString())
         } catch (t: Throwable) {
-            // Ignore first failure
+            System.err.println("Failed to download: ${t.message}")
+            null
+        }
+    }
+
+    private fun findNewestVersion(htmlContent: String): String? {
+        // Pattern to match version directories with dates
+        // Example: <a href="1.2025.4/" title="1.2025.4/">1.2025.4/</a>                                         2025-06-28 11:27         -
+        val pattern = Pattern.compile("""<a href="([^"]+/)"\s+title="[^"]+">([^<]+)</a>\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})""")
+        val matcher = pattern.matcher(htmlContent)
+        
+        var newestVersion: String? = null
+        var newestDate: LocalDateTime? = null
+        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        
+        while (matcher.find()) {
+            val versionDir = matcher.group(1)
+            val version = matcher.group(2)
+            val dateStr = matcher.group(3)
+            
+            // Skip parent directory and non-version directories
+            if (versionDir == "../" || !version.matches(Regex("""\d+\.\d{4}\.\d+/?"""))) {
+                continue
+            }
+            
+            try {
+                val date = LocalDateTime.parse(dateStr, dateFormatter)
+                if (newestDate == null || date.isAfter(newestDate)) {
+                    newestDate = date
+                    newestVersion = version.removeSuffix("/")
+                }
+            } catch (e: Exception) {
+                // Skip entries with unparseable dates
+                continue
+            }
         }
         
-        if (result == null) {
-            val downloadSf = "$ROOT/files$jar/download"
-            println("Retrying download at $downloadSf ...")
-            result = downloadFile(URL(downloadSf), filename, saveTo.toString())
-        }
-        
-        return result
+        return newestVersion
     }
 
     private fun writeTo(out: OutputStream, input: InputStream, progress: ((Int) -> Unit)?) {
