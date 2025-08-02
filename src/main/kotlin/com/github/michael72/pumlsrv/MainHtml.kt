@@ -97,7 +97,7 @@ class MainHtml(private val params: AppParams) {
                         AppParams.OutputMode.Light -> 
                             addLink(this, mode, "white", "#81D4FA", "black")
                         AppParams.OutputMode.Default -> 
-                            addLink(this, mode, "fffdcf", "#a00000", "black")
+                            addLink(this, mode, "#E2E2F0", "black", "black")
                     }
                 }
             }
