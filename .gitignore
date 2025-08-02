@@ -17,3 +17,5 @@ buildNumber.properties
 .metals/
 .vscode/
 .factorypath
+.idea
+
