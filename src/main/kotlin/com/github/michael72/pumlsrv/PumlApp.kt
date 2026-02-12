@@ -30,9 +30,9 @@ object PumlApp {
         val idxEnd = uml.lastIndexOf("@enduml")
         
         return when {
-            idx != -1 && idxEnd != -1 -> uml.substring(idx + STARTUML.length, idxEnd)
-            idx != -1 -> uml.substring(idx + STARTUML.length)
-            idxEnd != -1 -> uml.substring(0, idxEnd)
+            idx != -1 && idxEnd != -1 -> uml.substring(idx + STARTUML.length, idxEnd).trim()
+            idx != -1 -> uml.substring(idx + STARTUML.length).trim()
+            idxEnd != -1 -> uml.substring(0, idxEnd).trim()
             else -> uml
         }
     }
