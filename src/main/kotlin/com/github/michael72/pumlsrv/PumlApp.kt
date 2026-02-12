@@ -77,9 +77,11 @@ object PumlApp {
             }
         }
         
-        checkStartUml(umlBuf)
+        // Resolve remote !include URLs from cache before rendering
+        val resolvedUml = StringBuilder(RemoteIncludeCache.resolveRemoteIncludes(umlBuf.toString()))
+        checkStartUml(resolvedUml)
 
-        var result = UmlConverter.toImage(umlBuf.toString(), idx, imageType)
+        var result = UmlConverter.toImage(resolvedUml.toString(), idx, imageType)
         if (result.isError) {
             umlBuf.setLength(0)
             umlBuf.append(umlParts)

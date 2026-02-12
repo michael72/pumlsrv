@@ -129,6 +129,9 @@ class MainHtml(private val params: AppParams) {
             addToggle(this, "Open in browser on start", params.showBrowser, "show_browser")
             append("</tr></table></p>")
             
+            append("<p/>")
+            addLink(this, "exit", "exit", "#802020", "#FF4444", "white")            
+
             if (params.checkForUpdates) {
                 val updates = CheckUpdates.checkUpdates()
                 if (updates.isNotEmpty()) {
