@@ -3,9 +3,12 @@ package com.github.michael72.pumlsrv
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.zip.GZIPInputStream
+import java.util.zip.InflaterInputStream
 
 /**
  * Simple implementation of HTTP Server that handles PlantUML requests 
@@ -40,10 +43,17 @@ class App(private val params: AppParams) {
     }
     
     private fun setupRoutes(app: Javalin) {
-        // PlantUML requests
+        // PlantUML GET requests (encoded in URL)
         app.get("/plantuml/*") { ctx -> handlePlantumlRequest(ctx) }
-        app.post("/plantuml/*") { ctx -> handlePostNotSupported(ctx) }
-        
+
+        // PlantUML POST requests (raw source in body)
+        // Support POST at /{format} and /{format}/ matching the official PlantUML server
+        for (format in mediaTypes.keys) {
+            app.post("/$format") { ctx -> handlePostRender(ctx, format) }
+            app.post("/$format/") { ctx -> handlePostRender(ctx, format) }
+        }
+        app.post("/plantuml/*") { ctx -> handlePlantumlPostRequest(ctx) }
+
         // Configuration routes
         app.get("/exit") { ctx -> handleExit(ctx) }
         app.get("/mono") { ctx -> handleMonochrome(ctx) }
@@ -79,9 +89,48 @@ class App(private val params: AppParams) {
         }
     }
     
-    private fun handlePostNotSupported(ctx: Context) {
-        ctx.status(HttpStatus.METHOD_NOT_ALLOWED)
-            .result("HTTP method POST is not supported by this URL")
+    private fun handlePlantumlPostRequest(ctx: Context) {
+        val path = ctx.path().removePrefix("/plantuml/").trimEnd('/')
+        val parts = path.split("/")
+        val format = parts[0]
+        if (format !in mediaTypes) {
+            ctx.status(HttpStatus.BAD_REQUEST)
+                .contentType("text/plain")
+                .result("Unsupported format: $format. Supported: ${mediaTypes.keys.joinToString()}")
+            return
+        }
+        handlePostRender(ctx, format)
+    }
+
+    private fun handlePostRender(ctx: Context, imageType: String) {
+        try {
+            val bodyBytes = ctx.bodyAsBytes()
+            if (bodyBytes.isEmpty()) {
+                ctx.status(HttpStatus.BAD_REQUEST)
+                    .contentType("text/plain")
+                    .result("Error: empty request body")
+                return
+            }
+            val umlSource = decodePostBody(bodyBytes, ctx)
+            val convResult = PumlApp.toImage(umlSource, 0, params, imageType)
+            ctx.contentType(mediaTypes[imageType] ?: "text/plain")
+            ctx.result(convResult.bytes)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType("text/plain")
+                .result("Error: could not process UML diagram")
+        }
+    }
+
+    private fun decodePostBody(bodyBytes: ByteArray, ctx: Context): String {
+        val encoding = ctx.header("Content-Encoding")?.lowercase()
+        val decompressedBytes = when (encoding) {
+            "gzip" -> GZIPInputStream(ByteArrayInputStream(bodyBytes)).readBytes()
+            "deflate" -> InflaterInputStream(ByteArrayInputStream(bodyBytes)).readBytes()
+            else -> bodyBytes
+        }
+        return String(decompressedBytes, Charsets.UTF_8)
     }
     
     private fun handleExit(ctx: Context) {
