@@ -21,19 +21,6 @@
 		<javalin.version>5.6.3</javalin.version>
 	</properties>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>sonatype-public-repository</id>
-			<url>https://oss.sonatype.org/content/groups/public</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-		</pluginRepository>
-	</pluginRepositories>
-
 	<dependencies>
 		<!-- Kotlin -->
 		<dependency>
@@ -104,26 +91,6 @@
 		<testSourceDirectory>src/test/kotlin</testSourceDirectory>
 
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>3.6.0</version>
-				<executions>
-					<execution>
-						<id>enforce-maven</id>
-						<goals>
-							<goal>enforce</goal>
-						</goals>
-						<configuration>
-							<rules>
-								<requireMavenVersion>
-									<version>3.6.3</version>
-								</requireMavenVersion>
-							</rules>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<!-- Kotlin Compiler -->
 			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>

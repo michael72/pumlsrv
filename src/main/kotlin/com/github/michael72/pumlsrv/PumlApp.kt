@@ -28,10 +28,16 @@ object PumlApp {
     private fun stripStartUml(uml: String): String {
         val idx = uml.indexOf(STARTUML)
         val idxEnd = uml.lastIndexOf("@enduml")
-        
+
+        // Skip the entire @startuml line (including any diagram name after @startuml)
+        val idxStart = if (idx != -1) {
+            val lineEnd = uml.indexOf('\n', idx)
+            if (lineEnd != -1) lineEnd + 1 else uml.length
+        } else 0
+
         return when {
-            idx != -1 && idxEnd != -1 -> uml.substring(idx + STARTUML.length, idxEnd).trim()
-            idx != -1 -> uml.substring(idx + STARTUML.length).trim()
+            idx != -1 && idxEnd != -1 -> uml.substring(idxStart, idxEnd).trim()
+            idx != -1 -> uml.substring(idxStart).trim()
             idxEnd != -1 -> uml.substring(0, idxEnd).trim()
             else -> uml
         }
