@@ -104,8 +104,8 @@ object AppStarter {
                 args.add(Main::class.java.name)
                 args.addAll(Main.theArgs)
                 args.add("-j")
-                
-                println("java14 hack - restarting with: ")
+
+                println("restarting with: ")
                 args.forEach { print("$it ") }
                 println()
                 
@@ -123,9 +123,10 @@ object AppStarter {
         if (added) return
         
         var currentFile: String? = null
-        val files = File(".").listFiles(FilenameFilter { _, name ->
-            name.endsWith(".jar") && name.startsWith("plantuml.")
+        val files = File(System.getProperty("user.dir")).listFiles(FilenameFilter { _, name ->
+            name.endsWith(".jar") && name.startsWith("plantuml")
         })
+
         val filesEmpty = files == null || files.isEmpty()
 
         if (filesEmpty || sp.checkForUpdates) {
