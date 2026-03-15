@@ -81,6 +81,9 @@ class Main : Callable<Int> {
     @Option(names = ["-j", "--nodynamicjar"], description = ["Do not try to load the plantuml.jar dynamically."])
     private var noDynamicJar: Boolean = false
 
+    @Option(names = ["--debug"], description = ["Directory to write debug files (incoming .puml and rendered output) for each /plantuml/... request"])
+    private var debugDir: File? = null
+
     override fun call(): Int {
         if (darkMode && lightMode) {
             System.err.println("Cannot use dark and light both together - using dark mode.")
@@ -106,6 +109,10 @@ class Main : Callable<Int> {
             println("Using include file $it")
         }
 
+        debugDir?.let {
+            println("Debug mode: writing request/response files to $it")
+        }
+
         val params = AppParams(
             portStart = usedPort,
             offset = 0,
@@ -116,7 +123,8 @@ class Main : Callable<Int> {
             showBrowser = !noBrowser,
             noStore = noSettings,
             checkForUpdates = !noUpdates,
-            loadDynamicJar = !noDynamicJar
+            loadDynamicJar = !noDynamicJar,
+            debugDir = debugDir
         )
         
         if (clear) {

@@ -18,11 +18,14 @@ This http server runs on localhost on with the given port - default port is 8080
 ```
 java -jar pumlsrv*.jar -h
 
-Usage: pumlsrv [-cDhjLMnNruV] [-i=<include_file>] [PORT]
+Usage: pumlsrv [-cDhjLMnNruV] [--debug=<debugdir>] [-i=<include_file>] [PORT]
 An efficient and small implementation of a PlantUML server.
       [PORT]           Port of the http server to connect to
   -c, --clear          Clear default settings (except used port)
   -D, --dark           Switch to dark mode
+      --debug=<debugdir>
+                       Directory to write debug files (incoming .puml and
+                         rendered output) for each /plantuml/... request
   -h, --help           Show this help message and exit.
   -i, --include=<include_file>
                        Additional style to include for each UML
@@ -39,7 +42,20 @@ An efficient and small implementation of a PlantUML server.
   -V, --version        Print version information and exit.
 ```
 
-The main page that pops up (except when using `-N`) can be used to configure the settings. The settings configure here are automatically saved and restored on next startup.
+The main page that pops up (except when using `-N`) can be used to configure the settings. The settings configured here are automatically saved and restored on next startup.
+
+### Debug Mode
+
+The `--debug <debugdir>` option enables request/response logging for all `/plantuml/...` rendering requests. For each such request pumlsrv writes two files into `<debugdir>` (created automatically if it does not exist):
+
+- `<yyyyMMdd-HHmmss>.puml` — the incoming PlantUML source
+- `<yyyyMMdd-HHmmss>.<format>` — the rendered output (e.g. `.svg`, `.png`, …)
+
+Example:
+
+```
+java -jar pumlsrv*.jar --debug /tmp/puml-debug
+```
 
 Also the environment variable `PUMLSRV_PORT`is checked and used when no parameter is given to configure the port.
 

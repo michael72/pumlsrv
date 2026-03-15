@@ -4,7 +4,10 @@ import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
@@ -73,12 +76,25 @@ class App(private val params: AppParams) {
         }
     }
     
+    private fun writeDebugFiles(debugDir: File, umlSource: String, resultBytes: ByteArray, imageType: String) {
+        try {
+            debugDir.mkdirs()
+            val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
+            File(debugDir, "$timestamp.puml").writeText(umlSource)
+            File(debugDir, "$timestamp.$imageType").writeBytes(resultBytes)
+        } catch (ex: IOException) {
+            System.err.println("Debug: failed to write debug files: ${ex.message}")
+        }
+    }
+
     private fun handlePlantumlRequest(ctx: Context) {
         try {
             val path = ctx.path().removePrefix("/plantuml/")
             val parseUrl = ParseUrl(path)
             val convResult = PumlApp.toImage(parseUrl, params)
-            
+
+            params.debugDir?.let { writeDebugFiles(it, UmlConverter.decode(parseUrl.content), convResult.bytes, convResult.imageType) }
+
             ctx.contentType(mediaTypes[convResult.imageType] ?: "text/plain")
             ctx.result(convResult.bytes)
         } catch (ex: IOException) {
@@ -88,7 +104,7 @@ class App(private val params: AppParams) {
                 .result("Error: could not parse UML code")
         }
     }
-    
+
     private fun handlePlantumlPostRequest(ctx: Context) {
         val path = ctx.path().removePrefix("/plantuml/").trimEnd('/')
         val parts = path.split("/")
@@ -99,10 +115,10 @@ class App(private val params: AppParams) {
                 .result("Unsupported format: $format. Supported: ${mediaTypes.keys.joinToString()}")
             return
         }
-        handlePostRender(ctx, format)
+        handlePostRender(ctx, format, writeDebug = true)
     }
 
-    private fun handlePostRender(ctx: Context, imageType: String) {
+    private fun handlePostRender(ctx: Context, imageType: String, writeDebug: Boolean = false) {
         try {
             val bodyBytes = ctx.bodyAsBytes()
             if (bodyBytes.isEmpty()) {
@@ -113,6 +129,11 @@ class App(private val params: AppParams) {
             }
             val umlSource = decodePostBody(bodyBytes, ctx)
             val convResult = PumlApp.toImage(umlSource, 0, params, imageType)
+
+            if (writeDebug) {
+                params.debugDir?.let { writeDebugFiles(it, umlSource, convResult.bytes, convResult.imageType) }
+            }
+
             ctx.contentType(mediaTypes[imageType] ?: "text/plain")
             ctx.result(convResult.bytes)
         } catch (ex: Exception) {

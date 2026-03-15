@@ -13,7 +13,8 @@ data class AppParams(
     var showBrowser: Boolean = true,
     val noStore: Boolean = false,
     var checkForUpdates: Boolean = true,
-    val loadDynamicJar: Boolean = true
+    val loadDynamicJar: Boolean = true,
+    val debugDir: File? = null
 ) {
     enum class OutputMode {
         Default, Dark, Light
