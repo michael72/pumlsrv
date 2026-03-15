@@ -1,6 +1,7 @@
 package com.github.michael72.pumlsrv
 
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
@@ -22,6 +23,16 @@ class AppPostTest {
         private val HELLO_BOB = """
             @startuml
             Bob -> Alice : hello
+            @enduml
+        """.trimIndent()
+
+        private val NAMED_DIAGRAM = """
+            @startuml ArchitectureDiagram
+            component "key-collector" as KC
+            component "input/logs" as IL
+            component "sampled logs" as SL
+            KC --> IL
+            IL --> SL
             @enduml
         """.trimIndent()
 
@@ -124,6 +135,16 @@ class AppPostTest {
         assertEquals(200, response.statusCode())
         val body = String(response.body())
         assertTrue(body.contains("<svg"), "Deflated POST should return SVG content")
+    }
+
+    @Test
+    fun testPostNamedDiagram() {
+        val response = postDiagram("/svg", NAMED_DIAGRAM)
+        assertEquals(200, response.statusCode())
+        val body = String(response.body())
+        assertTrue(body.contains("<svg"), "Named @startuml diagram should return valid SVG content, not error SVG")
+        // Ensure we don't get the red error text SVG
+        assertFalse(body.contains("fill=\"red\""), "Named @startuml diagram should not produce an error SVG")
     }
 
     @Test
