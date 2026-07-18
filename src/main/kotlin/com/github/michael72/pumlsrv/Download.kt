@@ -104,6 +104,28 @@ object Download {
         return String(bos.toByteArray(), Charsets.UTF_8)
     }
 
+    /**
+     * Read at most [maxBytes] bytes from [content] as a UTF-8 string.
+     * Throws [IOException] if the stream exceeds the limit, so a malicious or
+     * runaway remote source cannot exhaust memory.
+     */
+    fun getContent(content: InputStream, maxBytes: Long): String {
+        val bos = ByteArrayOutputStream()
+        val buf = ByteArray(BLOCK_SIZE)
+        var total = 0L
+
+        var bytesRead = content.read(buf)
+        while (bytesRead != -1) {
+            total += bytesRead
+            if (total > maxBytes) {
+                throw IOException("Remote content exceeds maximum allowed size ($maxBytes bytes)")
+            }
+            bos.write(buf, 0, bytesRead)
+            bytesRead = content.read(buf)
+        }
+        return String(bos.toByteArray(), Charsets.UTF_8)
+    }
+
     private fun downloadFile(url: URL, fileName: String, saveDir: String): String? {
         var result: String? = null
         

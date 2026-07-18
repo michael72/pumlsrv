@@ -1,6 +1,8 @@
 package com.github.michael72.pumlsrv
 
 import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -14,6 +16,12 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object RemoteIncludeCache {
     private const val MAX_CACHE_SIZE = 200
+
+    /** Maximum size of a single fetched include (1 MiB). */
+    private const val MAX_INCLUDE_BYTES = 1024L * 1024L
+
+    /** Maximum number of redirects followed while fetching an include. */
+    private const val MAX_REDIRECTS = 3
 
     private val cache = ConcurrentHashMap<String, String>()
 
@@ -67,8 +75,7 @@ object RemoteIncludeCache {
         cache[url]?.let { return it }
 
         return try {
-            val inputStream = ConnectionHelper.getContent(url) ?: return null
-            val raw = Download.getContent(inputStream)
+            val raw = fetchSafely(url) ?: return null
             val stripped = stripStartEndUml(raw)
 
             // Simple eviction: clear entire cache if it grows too large
@@ -85,6 +92,52 @@ object RemoteIncludeCache {
             System.err.println("Error fetching remote include: $url — ${t.message}")
             null
         }
+    }
+
+    /**
+     * Fetch a remote include with SSRF protection.
+     *
+     * Every URL — including each redirect target — is validated with [RemoteIncludeGuard]
+     * before a connection is made, so an attacker cannot reach internal resources directly
+     * or via a redirect from a public host. Redirects are followed manually (with a bounded
+     * count) instead of automatically so each hop can be re-validated, and the response body
+     * is size-limited.
+     */
+    private fun fetchSafely(initialUrl: String): String? {
+        var current = initialUrl
+
+        for (hop in 0..MAX_REDIRECTS) {
+            if (!RemoteIncludeGuard.isAllowed(current)) {
+                System.err.println("Blocked remote include (SSRF protection): $current")
+                return null
+            }
+
+            val connection = ConnectionHelper.getConnection(URL(current))
+            connection.instanceFollowRedirects = false
+            try {
+                when (val code = connection.responseCode) {
+                    in 300..399 -> {
+                        val location = connection.getHeaderField("Location") ?: return null
+                        // Resolve relative redirects against the current URL.
+                        current = URL(URL(current), location).toString()
+                    }
+                    HttpURLConnection.HTTP_OK -> {
+                        return connection.inputStream.use {
+                            Download.getContent(it, MAX_INCLUDE_BYTES)
+                        }
+                    }
+                    else -> {
+                        System.err.println("Remote include returned HTTP $code: $current")
+                        return null
+                    }
+                }
+            } finally {
+                connection.disconnect()
+            }
+        }
+
+        System.err.println("Too many redirects for remote include: $initialUrl")
+        return null
     }
 
     /**
