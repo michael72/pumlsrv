@@ -46,31 +46,32 @@ class App(private val params: AppParams) {
     }
 
     private fun setupRoutes(config: JavalinConfig) {
+        val routes = config.routes
         // PlantUML GET requests (encoded in URL)
-        config.routes.get("/plantuml/*") { ctx -> handlePlantumlRequest(ctx) }
+        routes.get("/plantuml/*") { ctx -> handlePlantumlRequest(ctx) }
 
         // PlantUML POST requests (raw source in body)
         // Support POST at /{format} and /{format}/ matching the official PlantUML server
         for (format in mediaTypes.keys) {
-            config.routes.post("/$format") { ctx -> handlePostRender(ctx, format) }
-            config.routes.post("/$format/") { ctx -> handlePostRender(ctx, format) }
+            routes.post("/$format") { ctx -> handlePostRender(ctx, format) }
+            routes.post("/$format/") { ctx -> handlePostRender(ctx, format) }
         }
-        config.routes.post("/plantuml/*") { ctx -> handlePlantumlPostRequest(ctx) }
+        routes.post("/plantuml/*") { ctx -> handlePlantumlPostRequest(ctx) }
 
         // Configuration routes
-        config.routes.get("/exit") { ctx -> handleExit(ctx) }
-        config.routes.get("/mono") { ctx -> handleMonochrome(ctx) }
-        config.routes.get("/dark") { ctx -> handleDark(ctx) }
-        config.routes.get("/light") { ctx -> handleLight(ctx) }
-        config.routes.get("/default") { ctx -> handleDefault(ctx) }
-        config.routes.get("/move_to") { ctx -> handleMovePort(ctx) }
-        config.routes.get("/check_updates") { ctx -> handleCheckUpdates(ctx) }
-        config.routes.get("/show_browser") { ctx -> handleShowBrowser(ctx) }
-        config.routes.get("/favicon.ico") { ctx -> handleFavicon(ctx) }
-        config.routes.get("/") { ctx -> handleRoot(ctx) }
+        routes.get("/exit") { ctx -> handleExit(ctx) }
+        routes.get("/mono") { ctx -> handleMonochrome(ctx) }
+        routes.get("/dark") { ctx -> handleDark(ctx) }
+        routes.get("/light") { ctx -> handleLight(ctx) }
+        routes.get("/default") { ctx -> handleDefault(ctx) }
+        routes.get("/move_to") { ctx -> handleMovePort(ctx) }
+        routes.get("/check_updates") { ctx -> handleCheckUpdates(ctx) }
+        routes.get("/show_browser") { ctx -> handleShowBrowser(ctx) }
+        routes.get("/favicon.ico") { ctx -> handleFavicon(ctx) }
+        routes.get("/") { ctx -> handleRoot(ctx) }
 
         // 404 handler
-        config.routes.error(404) { ctx ->
+        routes.error(404) { ctx ->
             println("URL not found: ${ctx.path()}")
             ctx.status(HttpStatus.NOT_FOUND).result("Page not found")
         }
