@@ -1,6 +1,7 @@
 package com.github.michael72.pumlsrv
 
 import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus
 import java.io.ByteArrayInputStream
@@ -36,41 +37,41 @@ class App(private val params: AppParams) {
     fun listen(port: Int): Javalin {
         val app = Javalin.create { config ->
             config.http.defaultContentType = "text/html; charset=utf-8"
-            config.showJavalinBanner = false
+            config.startup.showJavalinBanner = false
+            setupRoutes(config)
         }
-        
-        setupRoutes(app)
-        
+
         javalinApp = app.start(port)
         return javalinApp!!
     }
-    
-    private fun setupRoutes(app: Javalin) {
+
+    private fun setupRoutes(config: JavalinConfig) {
+        val routes = config.routes
         // PlantUML GET requests (encoded in URL)
-        app.get("/plantuml/*") { ctx -> handlePlantumlRequest(ctx) }
+        routes.get("/plantuml/*") { ctx -> handlePlantumlRequest(ctx) }
 
         // PlantUML POST requests (raw source in body)
         // Support POST at /{format} and /{format}/ matching the official PlantUML server
         for (format in mediaTypes.keys) {
-            app.post("/$format") { ctx -> handlePostRender(ctx, format) }
-            app.post("/$format/") { ctx -> handlePostRender(ctx, format) }
+            routes.post("/$format") { ctx -> handlePostRender(ctx, format) }
+            routes.post("/$format/") { ctx -> handlePostRender(ctx, format) }
         }
-        app.post("/plantuml/*") { ctx -> handlePlantumlPostRequest(ctx) }
+        routes.post("/plantuml/*") { ctx -> handlePlantumlPostRequest(ctx) }
 
         // Configuration routes
-        app.get("/exit") { ctx -> handleExit(ctx) }
-        app.get("/mono") { ctx -> handleMonochrome(ctx) }
-        app.get("/dark") { ctx -> handleDark(ctx) }
-        app.get("/light") { ctx -> handleLight(ctx) }
-        app.get("/default") { ctx -> handleDefault(ctx) }
-        app.get("/move_to") { ctx -> handleMovePort(ctx) }
-        app.get("/check_updates") { ctx -> handleCheckUpdates(ctx) }
-        app.get("/show_browser") { ctx -> handleShowBrowser(ctx) }
-        app.get("/favicon.ico") { ctx -> handleFavicon(ctx) }
-        app.get("/") { ctx -> handleRoot(ctx) }
-        
+        routes.get("/exit") { ctx -> handleExit(ctx) }
+        routes.get("/mono") { ctx -> handleMonochrome(ctx) }
+        routes.get("/dark") { ctx -> handleDark(ctx) }
+        routes.get("/light") { ctx -> handleLight(ctx) }
+        routes.get("/default") { ctx -> handleDefault(ctx) }
+        routes.get("/move_to") { ctx -> handleMovePort(ctx) }
+        routes.get("/check_updates") { ctx -> handleCheckUpdates(ctx) }
+        routes.get("/show_browser") { ctx -> handleShowBrowser(ctx) }
+        routes.get("/favicon.ico") { ctx -> handleFavicon(ctx) }
+        routes.get("/") { ctx -> handleRoot(ctx) }
+
         // 404 handler
-        app.error(404) { ctx ->
+        routes.error(404) { ctx ->
             println("URL not found: ${ctx.path()}")
             ctx.status(HttpStatus.NOT_FOUND).result("Page not found")
         }
