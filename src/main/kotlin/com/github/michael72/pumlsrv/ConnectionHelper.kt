@@ -11,7 +11,10 @@ import java.net.URL
  * Helper class to open a URL connection with a configured proxy setting.
  */
 object ConnectionHelper {
-    
+
+    private const val CONNECT_TIMEOUT_MS = 10_000
+    private const val READ_TIMEOUT_MS = 10_000
+
     private fun getConnection(url: URL, useProxy: Boolean): HttpURLConnection {
         val httpProxy = System.getenv("HTTP_PROXY")
         var proxySetting = if (url.protocol.lowercase().contains("https")) {
@@ -24,10 +27,10 @@ object ConnectionHelper {
             proxySetting = httpProxy // http is fallback for https
         }
         
-        return if (useProxy && proxySetting != null && proxySetting.contains(":")) {
+        val connection = if (useProxy && proxySetting != null && proxySetting.contains(":")) {
             val idx = proxySetting.lastIndexOf(':')
             val proxy = Proxy(
-                Proxy.Type.HTTP, 
+                Proxy.Type.HTTP,
                 InetSocketAddress(
                     // ip and port
                     proxySetting.substring(proxySetting.lastIndexOf('/', idx) + 1, idx),
@@ -38,8 +41,12 @@ object ConnectionHelper {
         } else {
             url.openConnection() as HttpURLConnection
         }
+
+        connection.connectTimeout = CONNECT_TIMEOUT_MS
+        connection.readTimeout = READ_TIMEOUT_MS
+        return connection
     }
-    
+
     fun getConnection(url: URL): HttpURLConnection = getConnection(url, true)
     
     fun getLocalConnection(url: URL): HttpURLConnection = getConnection(url, false)
