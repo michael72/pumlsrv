@@ -11,6 +11,27 @@ Up to date: the newest plantuml*.jar is automatically downloaded. The download i
 
 ![pumlsrv mainpage](mainpage.png "Main Page")
 
+## Installation
+
+`get.sh` downloads the release jar to `~/.local/share/pumlsrv` and creates a `pumlsrv` launcher in `~/.local/bin`. The download is verified against the sha256 digest that GitHub records for the release asset; the install fails on any mismatch.
+
+```
+curl -sSL https://raw.githubusercontent.com/michael72/pumlsrv/master/get.sh | bash
+```
+
+For scripted or reproducible installs, pin the version — and preferably also fetch the script itself from a tag or commit instead of `master`, so the executed code cannot change underneath you (available from tags newer than v2.1.1):
+
+```
+curl -sSL https://raw.githubusercontent.com/michael72/pumlsrv/<tag-or-commit>/get.sh \
+  | PUMLSRV_VERSION=<tag> PUMLSRV_SHA256=<expected-jar-sha256> bash
+```
+
+Supported overrides:
+
+- first argument or `PUMLSRV_VERSION` — release tag to install (default: latest)
+- `PUMLSRV_SHA256` — expected sha256 of the jar; overrides the digest reported by the GitHub API
+- `PUMLSRV_START` — `n` to never start the server after installing, `y` to always start; when unset, the script prompts on a terminal and does not start otherwise (e.g. when piped into `bash`)
+
 ## Usage
 
 This http server runs on localhost on with the given port - default port is 8080. When using `h` parameter the options are shown: 
