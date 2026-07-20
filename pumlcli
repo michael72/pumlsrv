@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# pumlcli - render a PlantUML diagram via a running pumlsrv instance.
+#
+# Input:  -f <file.puml>, or the diagram source piped to STDIN.
+# Output: -o <output.{txt,svg,png}>, or the rendered result on STDOUT.
+# Type:   -t {txt,svg,png} - overrides the extension of -o; defaults to txt.
+#
+# The server is expected at http://localhost:${PUMLSRV_PORT:-8080}.
+
+set -euo pipefail
+
+TYPES="txt svg png"
+
+usage() {
+    cat <<EOF
+Usage: pumlcli [-f input.puml] [-o output.<type>] [-t <type>]
+
+Renders PlantUML source through a local pumlsrv instance
+(http://localhost:\${PUMLSRV_PORT:-8080}).
+
+  -f <file>   read PlantUML source from <file> (default: STDIN)
+  -o <file>   write result to <file>; its extension selects the output
+              type (default: STDOUT)
+  -t <type>   output type: one of $TYPES; takes precedence over the
+              extension of -o (default: txt)
+  -h          show this help
+
+Examples:
+  pumlcli -f diagram.puml -o diagram.svg
+  cat diagram.puml | pumlcli -t png > diagram.png
+  echo '@startuml
+Bob -> Alice : hello
+@enduml' | pumlcli
+EOF
+}
+
+die() {
+    echo "pumlcli: $*" >&2
+    exit 1
+}
+
+# Encode STDIN with PlantUML's text encoding: raw deflate, then a base64
+# variant using the alphabet 0-9A-Za-z-_ (see https://plantuml.com/text-encoding).
+# gzip output is a raw deflate stream wrapped in a fixed 10-byte header and an
+# 8-byte trailer, so stripping both yields the raw deflate bytes.
+encode_plantuml() {
+    local tmp size
+    tmp=$(mktemp) || die "could not create temporary file"
+    trap 'rm -f "$tmp"' RETURN
+    gzip -cn9 >"$tmp"
+    size=$(wc -c <"$tmp")
+    tail -c +11 "$tmp" | head -c $((size - 18)) |
+        base64 | tr -d '\n' | tr 'A-Za-z0-9+/=' '0-9A-Za-z-_0'
+}
+
+is_valid_type() {
+    case " $TYPES " in
+    *" $1 "*) return 0 ;;
+    *) return 1 ;;
+    esac
+}
+
+in_file=""
+out_file=""
+out_type=""
+
+while getopts ":f:o:t:h" opt; do
+    case $opt in
+    f) in_file=$OPTARG ;;
+    o) out_file=$OPTARG ;;
+    t) out_type=$OPTARG ;;
+    h)
+        usage
+        exit 0
+        ;;
+    :) die "option -$OPTARG requires an argument (see -h)" ;;
+    *) die "unknown option -$OPTARG (see -h)" ;;
+    esac
+done
+shift $((OPTIND - 1))
+[ $# -eq 0 ] || die "unexpected argument: $1 (see -h)"
+
+if [ -n "$out_type" ]; then
+    is_valid_type "$out_type" || die "invalid type '$out_type' - must be one of: $TYPES"
+elif [ -n "$out_file" ]; then
+    ext="${out_file##*.}"
+    is_valid_type "$ext" || die "cannot derive output type from '$out_file' - use an extension of $TYPES or pass -t"
+    out_type=$ext
+else
+    out_type="txt"
+fi
+
+if [ -n "$in_file" ]; then
+    [ -r "$in_file" ] || die "cannot read input file '$in_file'"
+    source=$(cat "$in_file")
+else
+    [ -t 0 ] && die "no input: pass -f <file> or pipe PlantUML source to STDIN (see -h)"
+    source=$(cat)
+fi
+[ -n "$source" ] || die "input is empty"
+encoded=$(printf '%s\n' "$source" | encode_plantuml)
+
+base_url="http://localhost:${PUMLSRV_PORT:-8080}"
+url="$base_url/plantuml/$out_type/$encoded"
+
+if [ -n "$out_file" ]; then
+    curl -sSf "$url" -o "$out_file" || die "request to $base_url failed - is pumlsrv running?"
+else
+    curl -sSf "$url" || die "request to $base_url failed - is pumlsrv running?"
+fi

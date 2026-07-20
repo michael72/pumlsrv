@@ -80,6 +80,20 @@ java -jar pumlsrv*.jar --debug /tmp/puml-debug
 
 Also the environment variable `PUMLSRV_PORT`is checked and used when no parameter is given to configure the port.
 
+### Command line client
+
+The `pumlcli` bash script renders PlantUML source through a running pumlsrv instance (`http://localhost:${PUMLSRV_PORT:-8080}`). It reads the diagram from a file (`-f`) or STDIN, and writes the result to a file (`-o`) or STDOUT. The output type (`txt`, `svg` or `png`) is taken from `-t` first, then from the extension of `-o`, and defaults to `txt`:
+
+```
+pumlcli -f diagram.puml -o diagram.svg
+cat diagram.puml | pumlcli -t png > diagram.png
+echo '@startuml
+Bob -> Alice : hello
+@enduml' | pumlcli
+```
+
+The only dependencies are standard Unix tools (`gzip`, `base64`, `curl`).
+
 The environment variables `HTTP_PROXY` and `HTTPS_PROXY` are checked when downloading updates behind a proxy.
 
 Editors that can connect to the official PlantUML server - such as jebbs excellent PlantUML plugin running in Visual Studio Code or CodiMD- can simply connect to pumlsrv via http protocol.
