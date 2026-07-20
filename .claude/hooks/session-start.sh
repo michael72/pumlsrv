@@ -2,11 +2,10 @@
 #
 # SessionStart hook for Claude Code on the web.
 #
-# The project targets Java 25 (see pom.xml: maven.compiler.source / jvmTarget).
-# Remote web-session containers ship with an older default JDK, so this hook
-# installs OpenJDK 25 and makes it the default for the session. Without it,
-# `mvn test` compiles to Java-25 bytecode that the older forked test JVM cannot
-# load ("class file version 69.0 ... only recognizes up to 65.0").
+# The project targets Java 21 (see pom.xml: maven.compiler.release / jvmTarget /
+# -Xjdk-release) but is built with JDK 25, matching the CI workflow. This hook
+# installs OpenJDK 25 and makes it the default for the session so web sessions
+# build with the same toolchain as CI.
 #
 # Safe to run repeatedly: it only installs when JDK 25 is missing.
 set -euo pipefail

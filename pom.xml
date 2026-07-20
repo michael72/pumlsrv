@@ -12,10 +12,11 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>25</maven.compiler.source>
-		<maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
+		<!-- Target Java 21 (current company baseline / LTS) while allowing the
+		     build itself to run on any newer JDK, e.g. 25. -->
+		<maven.compiler.release>21</maven.compiler.release>
 		<kotlin.version>2.4.0</kotlin.version>
-		<kotlin.compiler.jvmTarget>25</kotlin.compiler.jvmTarget>
+		<kotlin.compiler.jvmTarget>21</kotlin.compiler.jvmTarget>
 		<junit.jupiter.version>6.1.2</junit.jupiter.version>
 		<javalin.version>7.2.2</javalin.version>
 	</properties>
@@ -113,6 +114,11 @@
 				</executions>
 				<configuration>
 					<jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
+					<args>
+						<!-- Kotlin's equivalent of javac's release flag: compile against
+						     the Java 21 API even when building on a newer JDK. -->
+						<arg>-Xjdk-release=${kotlin.compiler.jvmTarget}</arg>
+					</args>
 				</configuration>
 			</plugin>
 
