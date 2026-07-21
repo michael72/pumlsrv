@@ -19,3 +19,7 @@ buildNumber.properties
 .factorypath
 .idea
 
+
+# Python
+__pycache__/
+*.pyc
