@@ -2,6 +2,7 @@ package com.github.michael72.pumlsrv
 
 import java.io.*
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
@@ -41,7 +42,7 @@ object Download {
         println("Downloading $downloadUrl ...")
         
         return try {
-            downloadFile(URL(downloadUrl), filename, saveTo.toString())
+            downloadFile(URI(downloadUrl).toURL(), filename, saveTo.toString())
         } catch (t: Throwable) {
             System.err.println("Failed to download: ${t.message}")
             null

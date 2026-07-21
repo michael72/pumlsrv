@@ -5,6 +5,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Proxy
+import java.net.URI
 import java.net.URL
 
 /**
@@ -53,7 +54,7 @@ object ConnectionHelper {
     
     private fun getContent(httpUrl: String, useProxy: Boolean): InputStream? {
         return try {
-            val url = URL(httpUrl)
+            val url = URI(httpUrl).toURL()
             val con = getConnection(url, useProxy)
             con.content as? InputStream
         } catch (ioe: IOException) {

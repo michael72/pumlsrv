@@ -153,7 +153,7 @@ object AppStarter {
             }
         } else if (!filesEmpty) {
             // Use the newest of the files
-            files!!.sort()
+            files.sort()
             currentFile = files.last().name
         }
         

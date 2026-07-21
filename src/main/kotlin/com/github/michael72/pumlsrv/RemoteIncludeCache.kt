@@ -2,6 +2,7 @@ package com.github.michael72.pumlsrv
 
 import java.io.IOException
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
@@ -112,14 +113,14 @@ object RemoteIncludeCache {
                 return null
             }
 
-            val connection = ConnectionHelper.getConnection(URL(current))
+            val connection = ConnectionHelper.getConnection(URI(current).toURL())
             connection.instanceFollowRedirects = false
             try {
                 when (val code = connection.responseCode) {
                     in 300..399 -> {
                         val location = connection.getHeaderField("Location") ?: return null
                         // Resolve relative redirects against the current URL.
-                        current = URL(URL(current), location).toString()
+                        current = URI(current).resolve(location).toString()
                     }
                     HttpURLConnection.HTTP_OK -> {
                         return connection.inputStream.use {
