@@ -8,7 +8,8 @@ image reference:
 
 * references without a matching ``.puml`` source produce a warning and are left
   untouched;
-* the diagram files themselves are kept on disk (they are not removed).
+* by default the inlined diagram files (the ``.puml`` source and its rendered
+  outputs) are removed; pass ``--keep`` / ``-k`` to retain them on disk.
 """
 import argparse
 import sys
@@ -36,7 +37,7 @@ def _line_indent(text: str, pos: int) -> str:
     return prefix if prefix.strip() == "" else ""
 
 
-def integrate(markdown_file: str) -> None:
+def integrate(markdown_file: str, keep: bool = False) -> None:
     md_path: Path = Path(markdown_file).resolve()
     if not md_path.is_file():
         raise FileNotFoundError(f"Markdown file not found: {markdown_file}")
@@ -47,6 +48,8 @@ def integrate(markdown_file: str) -> None:
     parts: list[str] = []
     last: int = 0
     integrated: int = 0
+    # inlined sources, deduped - the same diagram may be referenced repeatedly
+    inlined: set[Path] = set()
 
     for ref in pc.iter_image_refs(text, md_dir):
         ext: str = ref.target.suffix.lstrip(".").lower()
@@ -65,13 +68,25 @@ def integrate(markdown_file: str) -> None:
         indent: str = _line_indent(text, ref.start)
         body: str = puml_file.read_text(encoding="utf-8").rstrip("\n")
         parts.append(_fence(indent, body))
+        inlined.add(puml_file)
         integrated += 1
 
     parts.append(text[last:])
 
     if integrated:
         md_path.write_text("".join(parts), encoding="utf-8")
+
+    removed: int = 0
+    if integrated and not keep:
+        # remove the inlined .puml source and every rendered output next to it
+        for puml_file in inlined:
+            for f in sorted(puml_file.parent.glob(f"{puml_file.stem}.*")):
+                f.unlink()
+                removed += 1
+
     print(f"✅ Integrated {integrated} diagram(s) into {md_path.name}")
+    if removed:
+        print(f"🗑️  Removed {removed} diagram file(s)")
 
 
 def main() -> None:
@@ -80,10 +95,16 @@ def main() -> None:
         "```plantuml``` blocks (the inverse of extract_puml)."
     )
     parser.add_argument("markdown_file", help="Markdown file to process")
+    parser.add_argument(
+        "-k",
+        "--keep",
+        action="store_true",
+        help="keep the inlined diagram files on disk (default: remove them)",
+    )
     args = parser.parse_args()
 
     try:
-        integrate(args.markdown_file)
+        integrate(args.markdown_file, args.keep)
     except Exception as exc:  # noqa: BLE001 - surface a clean message on the CLI
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
