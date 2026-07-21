@@ -1,6 +1,7 @@
 package com.github.michael72.pumlsrv
 
 import java.net.InetAddress
+import java.net.URI
 import java.net.URL
 
 /**
@@ -22,7 +23,7 @@ object RemoteIncludeGuard {
     /** Returns true if [rawUrl] is safe to fetch server-side. */
     fun isAllowed(rawUrl: String): Boolean {
         val url = try {
-            URL(rawUrl)
+            URI(rawUrl).toURL()
         } catch (e: Exception) {
             return false
         }
