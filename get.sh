@@ -127,6 +127,19 @@ java -cp "./${JAR_FILE}" com.github.michael72.pumlsrv.Main "\$@"
 EOF
 chmod +x "$LAUNCHER"
 
+# Write a headless server launcher (handy for containers): start pumlsrv without
+# update checks (-u), without storing settings (-n) and without opening a
+# browser (-N), detached with output discarded. The port is taken from
+# \$PUMLSRV_PORT, defaulting to 8080.
+SERVER="${BIN_DIR}/pumlsrv-server"
+cat > "$SERVER" <<EOF
+#!/bin/bash
+# Start pumlsrv in headless server mode (no updates, no stored settings, no
+# browser), detached with output discarded. Port: \$PUMLSRV_PORT (default 8080).
+"${LAUNCHER}" -u -n -N "\${PUMLSRV_PORT:-8080}" &> /dev/null &
+EOF
+chmod +x "$SERVER"
+
 # Install the pumlcli command-line client next to the pumlsrv launcher. It is
 # a standalone bash script shipped in the repo; fetch it at the same ref we are
 # installing so client and server stay in sync.
@@ -149,6 +162,7 @@ if [ -n "$PLANTUML_JAR" ]; then
     echo "  plantuml: ${DATA_DIR}/${PLANTUML_JAR}"
 fi
 echo "  script:   ${LAUNCHER}"
+echo "  server:   ${SERVER}"
 if [ -n "$CLI" ]; then
     echo "  cli:      ${CLI}"
 fi

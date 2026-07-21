@@ -17,6 +17,11 @@ Up to date: the newest plantuml*.jar is automatically downloaded. The download i
 
 It also installs the `pumlcli` command-line client into `~/.local/bin` and downloads the latest `plantuml-*.jar` next to the `pumlsrv` jar, so the server has a renderer available on first start. Both are best-effort: if either download fails the install still completes (pumlsrv can fetch the PlantUML jar itself on first start unless updates are disabled).
 
+Two launchers are created in `~/.local/bin`:
+
+- `pumlsrv` — the standard launcher; on startup it checks for updates, opens the browser and saves/restores settings. This is what a normal desktop install wants.
+- `pumlsrv-server` — a headless launcher, handy inside containers. It runs `pumlsrv -u -n -N "${PUMLSRV_PORT:-8080}"` (no update check, no stored settings, no browser) detached with its output discarded. The port comes from `$PUMLSRV_PORT`, defaulting to `8080`.
+
 ```
 curl -sSL https://raw.githubusercontent.com/michael72/pumlsrv/master/get.sh | bash
 ```
