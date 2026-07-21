@@ -15,6 +15,8 @@ Up to date: the newest plantuml*.jar is automatically downloaded. The download i
 
 `get.sh` downloads the release jar to `~/.local/share/pumlsrv` and creates a `pumlsrv` launcher in `~/.local/bin`. The download is verified against the sha256 digest that GitHub records for the release asset; the install fails on any mismatch.
 
+It also installs the `pumlcli` command-line client into `~/.local/bin` and downloads the latest `plantuml-*.jar` next to the `pumlsrv` jar, so the server has a renderer available on first start. Both are best-effort: if either download fails the install still completes (pumlsrv can fetch the PlantUML jar itself on first start unless updates are disabled).
+
 ```
 curl -sSL https://raw.githubusercontent.com/michael72/pumlsrv/master/get.sh | bash
 ```

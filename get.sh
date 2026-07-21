@@ -4,6 +4,8 @@ set -eu
 REPO="michael72/pumlsrv"
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/pumlsrv"
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
+# Maven directory listing for the PlantUML jar (mirrors Download.kt).
+PLANTUML_MAVEN_BASE="https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml"
 
 # Overrides for scripted / reproducible installs:
 #   $1 or PUMLSRV_VERSION  release tag to install (e.g. v2.1.3); default: latest
@@ -79,6 +81,43 @@ echo "Checksum verified (sha256: ${ACTUAL_SHA256})"
 mv "$TMP_JAR" "${DATA_DIR}/${JAR_FILE}"
 trap - EXIT
 
+# Download the latest PlantUML jar next to the pumlsrv jar, so the server has a
+# renderer available on first start (it can also fetch this itself at runtime,
+# so a failure here is only a warning). This mirrors the version detection in
+# Download.kt: parse the Maven directory listing and pick the entry with the
+# newest upload date.
+PLANTUML_JAR=""
+echo "Looking up latest PlantUML jar..."
+PLANTUML_INDEX=$(curl -fsSL "${PLANTUML_MAVEN_BASE}/" 2>/dev/null || true)
+PLANTUML_VERSION=$(printf '%s' "$PLANTUML_INDEX" |
+    grep -oE '<a href="[0-9]+\.[0-9]{4}\.[0-9]+/"[^>]*>[^<]+</a>[[:space:]]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}' |
+    sed -E 's#<a href="([0-9]+\.[0-9]{4}\.[0-9]+)/"[^>]*>[^<]+</a>[[:space:]]+([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2})#\2 \1#' |
+    sort | tail -1 | awk '{print $3}')
+if [ -z "$PLANTUML_VERSION" ]; then
+    echo "Warning: could not determine latest PlantUML version; skipping." >&2
+    echo "         pumlsrv will download it on first start unless disabled." >&2
+else
+    PLANTUML_JAR="plantuml-${PLANTUML_VERSION}.jar"
+    if [ -f "${DATA_DIR}/${PLANTUML_JAR}" ]; then
+        echo "Already have latest PlantUML jar ${PLANTUML_JAR}"
+    else
+        echo "Downloading ${PLANTUML_JAR}..."
+        TMP_PLANTUML=$(mktemp "${DATA_DIR}/.${PLANTUML_JAR}.XXXXXX")
+        trap 'rm -f "$TMP_PLANTUML"' EXIT
+        if curl -fsSL -o "$TMP_PLANTUML" \
+            "${PLANTUML_MAVEN_BASE}/${PLANTUML_VERSION}/${PLANTUML_JAR}"; then
+            mv "$TMP_PLANTUML" "${DATA_DIR}/${PLANTUML_JAR}"
+            trap - EXIT
+        else
+            echo "Warning: failed to download ${PLANTUML_JAR}; skipping." >&2
+            echo "         pumlsrv will download it on first start unless disabled." >&2
+            rm -f "$TMP_PLANTUML"
+            trap - EXIT
+            PLANTUML_JAR=""
+        fi
+    fi
+fi
+
 # Write the launcher script
 LAUNCHER="${BIN_DIR}/pumlsrv"
 cat > "$LAUNCHER" <<EOF
@@ -88,9 +127,31 @@ java -cp "./${JAR_FILE}" com.github.michael72.pumlsrv.Main "\$@"
 EOF
 chmod +x "$LAUNCHER"
 
+# Install the pumlcli command-line client next to the pumlsrv launcher. It is
+# a standalone bash script shipped in the repo; fetch it at the same ref we are
+# installing so client and server stay in sync.
+CLI="${BIN_DIR}/pumlcli"
+echo "Installing pumlcli..."
+if curl -fsSL -o "$CLI" \
+    "https://raw.githubusercontent.com/${REPO}/${VERSION}/tools/pumlcli" ||
+    curl -fsSL -o "$CLI" \
+        "https://raw.githubusercontent.com/${REPO}/master/tools/pumlcli"; then
+    chmod +x "$CLI"
+else
+    echo "Warning: failed to download pumlcli; skipping." >&2
+    rm -f "$CLI"
+    CLI=""
+fi
+
 echo "Installed:"
-echo "  jar:    ${DATA_DIR}/${JAR_FILE}"
-echo "  script: ${LAUNCHER}"
+echo "  jar:      ${DATA_DIR}/${JAR_FILE}"
+if [ -n "$PLANTUML_JAR" ]; then
+    echo "  plantuml: ${DATA_DIR}/${PLANTUML_JAR}"
+fi
+echo "  script:   ${LAUNCHER}"
+if [ -n "$CLI" ]; then
+    echo "  cli:      ${CLI}"
+fi
 
 # Warn if BIN_DIR is not in PATH
 if [[ ":$PATH:" != *":${BIN_DIR}:"* ]]; then
