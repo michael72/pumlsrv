@@ -100,4 +100,32 @@ Editors that can connect to the official PlantUML server - such as jebbs excelle
 
 Like the official Plant-UML server pumlsrv also supports the output types png, svg, eps, epstext and txt.
 
+### Markdown diagram tooling
+
+The `tools/` folder contains a few Python helpers for working with PlantUML
+diagrams embedded in Markdown files. They all drive diagrams through `pumlcli`,
+so a pumlsrv instance has to be running. The extracted diagram files follow the
+naming schema `<markdown_name>_<index>[_<diagram_name>].<suffix>`, where `index`
+counts `00`, `01`, `02`, … in document order and `diagram_name` is taken (in
+snake_case) from the `@startuml <name>` directive when present.
+
+- `extract_puml.py <markdown-file> [<diagrams-folder>] [-t svg|png|txt]` —
+  extracts every ` ```plantuml ` / ` ```puml ` block into its own `.puml` file
+  in the diagrams folder (default `diagrams`, resolved next to the Markdown
+  file), renders it via `pumlcli` (default `svg`) and replaces the block with a
+  reference to the rendered output. Diagram files that are already referenced
+  from the Markdown are re-indexed in document order, renaming their `.puml`
+  source and every rendered output to match the schema.
+- `convert_rendered.py <markdown-file> [-t svg|png|txt]` — converts all diagram
+  references to another output type (default `svg`). References already in the
+  target format are skipped; references without a matching `.puml` source are
+  warned about and skipped; otherwise the `.puml` source is re-rendered and the
+  reference updated.
+- `refresh_all.py <markdown-file>` — re-renders every referenced diagram from
+  its `.puml` source in the current output type, without changing the Markdown.
+
+`md_to_pdf.py` converts a Markdown file (or a whole directory) to PDF or
+self-contained HTML with GitHub styling, inlining local images (including the
+rendered diagrams) as base64 data URIs.
+
 Enjoy!
