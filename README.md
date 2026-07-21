@@ -123,6 +123,13 @@ snake_case) from the `@startuml <name>` directive when present.
   reference updated.
 - `refresh_all.py <markdown-file>` — re-renders every referenced diagram from
   its `.puml` source in the current output type, without changing the Markdown.
+- `integrate_puml.py <markdown-file> [-k|--keep]` — the inverse of
+  `extract_puml.py`: for every diagram reference with a matching `.puml` source
+  next to it, the image reference is replaced by an inline ` ```plantuml ` block
+  containing that source. References without a matching `.puml` source are
+  warned about and left untouched. By default the inlined diagram files (the
+  `.puml` source and its rendered outputs) are removed; pass `-k`/`--keep` to
+  retain them on disk.
 
 `md_to_pdf.py` converts a Markdown file (or a whole directory) to PDF or
 self-contained HTML with GitHub styling, inlining local images (including the
