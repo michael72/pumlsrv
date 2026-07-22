@@ -87,6 +87,8 @@ java -jar pumlsrv*.jar --debug /tmp/puml-debug
 
 Also the environment variable `PUMLSRV_PORT`is checked and used when no parameter is given to configure the port.
 
+The environment variable `PUMLSRV_COLOR_MODE` selects the default color mode: `light` behaves like `-L` and `dark` behaves like `-D`. The `-L` / `-D` parameters override `PUMLSRV_COLOR_MODE` when both are given.
+
 ### Command line client
 
 The `pumlcli` bash script renders PlantUML source through a running pumlsrv instance (`http://localhost:${PUMLSRV_PORT:-8080}`). It reads the diagram from a file (`-f`) or STDIN, and writes the result to a file (`-o`) or STDOUT. The output type (`txt`, `svg` or `png`) is taken from `-t` first, then from the extension of `-o`, and defaults to `txt`:

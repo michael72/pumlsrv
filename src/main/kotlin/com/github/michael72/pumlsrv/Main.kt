@@ -23,6 +23,26 @@ class Main : Callable<Int> {
             val portEnv = System.getenv("PUMLSRV_PORT")
             return portEnv?.toIntOrNull() ?: DEFAULT_PORT
         }
+
+        /**
+         * Base color mode taken from the PUMLSRV_COLOR_MODE environment variable.
+         * `light` is equivalent to `-L`, `dark` is equivalent to `-D`.
+         * Explicit `-L` / `-D` parameters take precedence over this value.
+         */
+        private fun colorModeFromEnv(): AppParams.OutputMode {
+            val colorMode = System.getenv("PUMLSRV_COLOR_MODE")?.trim() ?: return AppParams.OutputMode.Default
+            return when (colorMode.lowercase()) {
+                "" -> AppParams.OutputMode.Default
+                "light" -> AppParams.OutputMode.Light
+                "dark" -> AppParams.OutputMode.Dark
+                else -> {
+                    System.err.println(
+                        "Unsupported mode in env PUMLSRV_COLOR_MODE: $colorMode - expected 'light' or 'dark', using default mode."
+                    )
+                    AppParams.OutputMode.Default
+                }
+            }
+        }
         
         lateinit var theArgs: Array<String>
         
@@ -89,20 +109,12 @@ class Main : Callable<Int> {
             System.err.println("Cannot use dark and light both together - using dark mode.")
         }
         
-        var outputMode = when {
-            darkMode -> AppParams.OutputMode.Dark
-            lightMode -> AppParams.OutputMode.Light
-            else -> AppParams.OutputMode.Default
-        }
-        
-        val modeEnv = System.getenv("PUMLSRV_MODE")
-        if (modeEnv != null) {
-            try {
-                val normalizedMode = modeEnv.trim().lowercase().replaceFirstChar { it.uppercase() }
-                outputMode = AppParams.OutputMode.valueOf(normalizedMode)
-            } catch (ex: IllegalArgumentException) {
-                System.err.println("Unsupported mode in env PUMLSRV_MODE: $modeEnv, using default mode.")
-            }
+        // Base color mode from the PUMLSRV_COLOR_MODE environment variable.
+        // Explicit -D / -L parameters override the environment variable.
+        var outputMode = colorModeFromEnv()
+        when {
+            darkMode -> outputMode = AppParams.OutputMode.Dark
+            lightMode -> outputMode = AppParams.OutputMode.Light
         }
 
         includeFile?.let {
