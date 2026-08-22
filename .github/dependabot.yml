@@ -1,0 +1,53 @@
+# Dependabot configuration
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Enables version updates (and, more importantly here, the security-update PRs
+# Dependabot only opens for ecosystems that appear in this file).
+version: 2
+
+updates:
+  # Maven dependencies and build plugins declared in pom.xml
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      # Kotlin stdlib, test lib and the maven plugin share ${kotlin.version},
+      # so they have to move together in a single PR.
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin:*"
+      # Same for the JUnit engine and platform launcher (${junit.jupiter.version}).
+      junit:
+        patterns:
+          - "org.junit.jupiter:*"
+          - "org.junit.platform:*"
+      maven-plugins:
+        patterns:
+          - "org.apache.maven.plugins:*"
+
+  # Action versions used by .github/workflows/maven.yml
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
