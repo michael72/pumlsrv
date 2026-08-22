@@ -14,6 +14,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+# Least privilege by default; the dependency-graph job below opts into more.
+permissions:
+  contents: read
+
 jobs:
   build:
 
@@ -30,6 +34,30 @@ jobs:
     - name: Build with Maven
       run: mvn clean package
 
-    # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
+  # Uploads the full dependency graph to GitHub to improve the quality of the
+  # Dependabot alerts this repository can receive.
+  #
+  # Only runs on pushes to master: submitting a snapshot needs `contents: write`,
+  # and on `pull_request` runs triggered by Dependabot the GITHUB_TOKEN is always
+  # read-only, so the API call there fails with HTTP 403 "Resource not accessible
+  # by integration". The dependency graph tracks the default branch anyway, so
+  # there is nothing to submit from a pull request.
+  dependency-graph:
+    if: github.event_name == 'push'
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 25
+      uses: actions/setup-java@v4
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: maven
     - name: Update dependency graph
       uses: advanced-security/maven-dependency-submission-action@v4
