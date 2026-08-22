@@ -8,7 +8,7 @@ BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 PLANTUML_MAVEN_BASE="https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml"
 
 # Overrides for scripted / reproducible installs:
-#   $1 or PUMLSRV_VERSION  release tag to install (e.g. v2.1.3); default: latest
+#   $1 or PUMLSRV_VERSION  release tag to install (e.g. v2.1.4); default: latest
 #   PUMLSRV_SHA256         expected sha256 of the jar; overrides the digest
 #                          reported by the GitHub API
 #   PUMLSRV_START          "n" to never start the server, "y" to always start;
